@@ -1,0 +1,80 @@
+Cliente: Equipe de Plataforma e Canais Digitais — Vivo Telecom
+
+Contexto de Negócio:
+
+"Estamos migrando o portal do cliente para uma arquitetura moderna baseada em microsserviços.
+Não queremos mais enviar ordens de serviço por arquivos de texto locais.
+
+A Nossa Necessidade: Precisamos da primeira API REST de Provisionamento de Linha.
+O sistema deve disponibilizar um endpoint Web seguro para testar se a API está online (Health Check)
+e permitir que sistemas externos façam requisições HTTP para consultar e cadastrar planos de telefonia."
+
+🎟️ TASK-36: Primeira API REST com Spring Boot 3 & Controllers (Sprint Nível Pleno)
+Projeto / Módulo: Crie um novo projeto Spring Boot na sua IDE (via Spring Initializr no site start.spring.io ou direto pelo IntelliJ/Eclipse)
+com as seguintes configurações:
+
+    Project: Maven
+
+    Language: Java
+
+    Spring Boot: 3.x
+
+    Group: br.com.jaanalves
+
+    Artifact: fase4-api-telefonia
+
+    Dependencies: Selecione Spring Web (essencial para criar Controllers REST).
+
+📋 Critérios de Aceite e Arquitetura do Sistema
+Pacote base: br.com.jaanalves.fase4
+
+src/main/java/br/com.jaanalves.fase4/
+ ├── dto/
+ │    └── PlanoTelefonia.java               <-- Seu DTO / Modelo de Dados
+ ├── controllers/
+ │    └── PlanoController.java             <-- Seu Controlador REST
+ └── Fase4ApiTelefoniaApplication.java      <-- Classe principal (Server Boot)
+
+1. Entidade / DTO PlanoTelefonia (dto ou entities)
+    Atributos Privados:
+
+        id (Long)
+
+        nome (String)
+
+        franquiaGb (int)
+
+        valorMensal (double)
+
+    Construtor completo, Construtor padrão (vazio - obrigatório para o Spring serializar JSON), Getters e Setters.
+
+2. Controlador REST PlanoController (controllers)
+    Annotar a classe com:
+
+        @RestController (avisa ao Spring que esta classe vai responder requisições Web em JSON)
+
+        @RequestMapping("/api/planos") (define a rota base para este recurso)
+
+Endpoints a serem criados:
+
+    Endpoint 1 (Health Check - GET /api/planos/status):
+
+        Anotação: @GetMapping("/status")
+
+        Retorna: Uma String: "API de Provisionamento de Planos está ONLINE!".
+
+    Endpoint 2 (Buscar Plano Mockado - GET /api/planos/exemplo):
+
+        Anotação: @GetMapping("/exemplo")
+
+        Retorna: Um objeto PlanoTelefonia preenchido (ex: ID 1L, "Vivo Controle 20GB", 20, 59.90).
+
+        O Spring Boot vai converter esse objeto Java em um JSON automaticamente!
+
+    Endpoint 3 (Cadastrar Plano - POST /api/planos):
+
+        Anotação: @PostMapping
+
+        Recebe no parâmetro do método: @RequestBody PlanoTelefonia plano (o Spring pega o JSON enviado pelo cliente e converte para objeto Java).
+
+        Imprime o plano recebido no console do servidor e retorna uma String: "Plano " + plano.getNome() + " cadastrado com sucesso!".

@@ -1,0 +1,79 @@
+### 🗺️ Onde Estamos e Para Onde Vamos Hoje
+
+Ontem, a sua lógica de negócio e os dados fictícios ficaram direto dentro do `PlanoController`.
+
+No mercado real, o **Controller** não deve guardar regras de negócio e nem manipular dados diretamente. Ele deve ser "magro", servindo apenas para receber a requisição Web e repassar o trabalho para a **Camada de Serviço (`@Service`)**.
+
+Hoje você vai aprender o pilar central da arquitetura Spring: **Injeção de Dependências e Arquitetura em Camadas**.
+
+```text
+[Cliente / Postman]
+       ↓ (Requisição HTTP / JSON)
+[Controller] (@RestController) - Valida e direciona a rota
+       ↓ (Injeção via @Autowired / Construtor)
+[Service] (@Service) - Executa as regras de negócio e manipula a lista em memória
+
+```
+
+---
+
+## 🏬 História de Usuário & Contexto do Cliente
+
+**Cliente:** Equipe de Plataforma e Canais Digitais — Vivo Telecom
+
+**Contexto de Negócio:**
+
+> "A nossa API de provisionamento precisa evoluir. O time de infraestrutura aprovou a primeira versão,
+mas agora precisamos conseguir **armazenar múltiplos planos em memória, listar todos os planos cadastrados e **buscar um plano específico pelo seu ID.
+> A Nossa Necessidade:** Separar a responsabilidade do código. O Controller deve apenas expor os endpoints Web,
+enquanto uma nova **Classe de Serviço gerencia a lista de planos em memória e aplica as regras de validação do negócio."
+
+---
+
+## 🎟️ TASK-37: Arquitetura em Camadas & Gerenciamento de Memória com Spring Boot
+
+Projeto: Continue no mesmo projeto `fase4-api-telefonia`
+
+---
+
+📋 O Que Você Deve Fazer (Critérios de Aceite)
+
+    1. Ajuste no DTO `PlanoTelefonia` (`dto`)
+
+        Garanta que o método setter da franquia esteja corrigido para `setFranquiaGb(int franquiaGb)`.
+
+    2. Nova Camada de Serviço: `PlanoService` (`services`)
+
+        Crie o pacote `br.com.jaanalves.fase4.services` e a classe `PlanoService`.
+
+        Anote a classe com **`@Service`** (avisa ao Spring que esta classe é um componente de serviço e gerencia regras de negócio).
+        Atributo Interno:** `private List<PlanoTelefonia> planos = new ArrayList<>();`
+        Métodos a serem criados na Service:**
+            1. `public List<PlanoTelefonia> listarTodos()` ➔ Retorna a lista completa de planos.
+            2. `public PlanoTelefonia buscarPorId(Long id)` ➔ Procura na lista o plano com o ID informado (pode usar um `for` tradicional ou `stream().filter()`). Se não achar, pode retornar `null`.
+            3. `public PlanoTelefonia cadastrar(PlanoTelefonia plano)` ➔ Adiciona o plano na lista e o retorna.
+
+
+
+    3. Refatoração do Controller: `PlanoController` (`controllers`)
+
+        Injete o `PlanoService` dentro do Controller usando a anotação **`@Autowired`** (ou injeção via construtor).
+
+        Endpoints a serem ajustados/criados:**
+
+            GET `/api/planos**` ➔ Retorna a lista de todos os planos cadastrados via `service.listarTodos()`.
+            GET `/api/planos/{id}**` ➔ Usa a anotação **`@PathVariable Long id`** para capturar o ID vindo da URL (ex: `/api/planos/1`)
+                e chama `service.buscarPorId(id)`.
+            POST `/api/planos**` ➔ Recebe o `@RequestBody PlanoTelefonia plano`, chama `service.cadastrar(plano)` e retorna o plano cadastrado.
+
+---
+
+### 🧪 Como Validar no Postman
+
+1. Suba a aplicação (`Fase4ApiTelefoniaApplication`).
+2. Faça um `GET http://localhost:8080/api/planos` (deve vir uma lista vazia `[]`).
+3. Faça 2 ou 3 requisições `POST http://localhost:8080/api/planos` enviando JSONs com IDs `1`, `2`, etc.
+4. Faça o `GET http://localhost:8080/api/planos` novamente (deve listar todos os que você cadastrou!).
+5. Faça um `GET http://localhost:8080/api/planos/1` (deve retornar apenas o plano do ID 1).
+
+---
