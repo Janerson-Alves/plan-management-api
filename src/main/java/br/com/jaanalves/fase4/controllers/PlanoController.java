@@ -49,4 +49,19 @@ public class PlanoController {
         return "Plano cadastrado com sucesso";
     }
 
+    // Endpoint de atualizar dados, nome, FranquiaGb e valorMensal
+    // Usa a anotação @PathVariable Long id para capturar o ID vindo da URL (ex: /api/planos/1)
+    // Usa a anotação @RequestBody para atualizar os valores do ID especifico, e retorna os valores atualizados
+    @PutMapping("/{id}")
+    public PlanoTelefonia atualizarporId(@PathVariable Long id, @RequestBody PlanoTelefonia plano) {
+        return planoService.atualizar(id, plano);
+    }
+
+    // Endpoint de remover registros dos planos
+    @DeleteMapping("/{id}")
+    public String removerPlanoId(@PathVariable Long id) {
+        planoService.deletar(id);
+        return "Plano excluido com sucesso";
+    }
+
 }

@@ -15,6 +15,7 @@ public class PlanoService {
 
     // Retorna a lista completa de planos
     public List<PlanoTelefonia> listarTodos() {
+
         return planos;
     }
 
@@ -31,4 +32,47 @@ public class PlanoService {
         planos.add(plano);
         return plano;
     }
+
+    // Atualiza o plano, Busca o plano na lista pelo id Se encontrar, altera seus campos
+    // (nome, franquiaGb, valorMensal) para os novos valores recebidos e retorna o plano atualizado.
+    // Se não encontrar, retorna null.
+     public PlanoTelefonia atualizar(Long id, PlanoTelefonia planoAtualizado) {
+         // Filtra o ID
+        PlanoTelefonia filtroPeloId = planos.stream()
+                .filter(plano -> plano.getId() == id)
+                .findFirst()
+                .orElse(null);
+
+        // verifica se o Filtro e nulo.
+        if (filtroPeloId == null) {
+            return null;
+        }
+
+        // Atualizando os valores
+        filtroPeloId.setNome(planoAtualizado.getNome());
+        filtroPeloId.setFranquiaGb(planoAtualizado.getFranquiaGb());
+        filtroPeloId.setValorMensal(planoAtualizado.getValorMensal());
+
+        return filtroPeloId;
+     }
+
+     //Busca o plano na lista pelo id.
+    //Se encontrar, remove-o da lista em memória e retorna true.
+    //Se o id não existir, retorna false
+    public boolean deletar(long id) {
+        // Filtra o ID
+        PlanoTelefonia filtroPeloId = planos.stream()
+                .filter(plano -> plano.getId() == id)
+                .findFirst()
+                .orElse(null);
+        // verifica se o Filtro e nulo.
+        if (filtroPeloId == null) {
+            return false;
+        }
+        // Remove o filtro realizado e retorna true para a remoção
+        planos.remove(filtroPeloId);
+        return true;
+    }
+
+
 }

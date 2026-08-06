@@ -1,0 +1,85 @@
+### 🗺️ Onde Paramos & Para Onde Vamos Hoje
+
+Ontem nós deixamos a arquitetura em camadas (`Controller` -> `Service`) rodando redondinha, com salvamento de dados em memória (`List`)
+    e o projeto devidamente publicado no seu GitHub.
+
+Hoje, no nosso Dia 16, nós vamos adicionar duas funcionalidades de negócio essenciais em qualquer API REST do mercado:
+    Atualização (PUT) e Exclusão (DELETE) de recursos!
+
+```
+[HTTP Verbs]
+ ├── GET    -> Consulta (Já feito!)
+ ├── POST   -> Cadastro (Já feito!)
+ ├── PUT    -> Atualização Total/Substituição de Recurso (TASK-38 Hoje!)
+ └── DELETE -> Remoção de Recurso (TASK-38 Hoje!)
+
+```
+Contexto de Negócio:
+
+"A nossa API de provisionamento já consegue cadastrar e listar planos, mas no dia a dia da operação os planos sofrem reajustes de preço,
+ mudanças na franquia de internet e, eventualmente, alguns planos legados são descontinuados comercialmente.
+
+A Nossa Necessidade: Precisamos completar a gestão do ciclo de vida dos recursos na API de Provisionamento v1.
+    O sistema deve permitir que os analistas operacionais atualizem as condições de um plano existente (PUT) e removam planos descontinuados
+    do catálogo (DELETE) sem precisar reiniciar o servidor ou intervir manualmente na base de dados."
+
+
+
+## 🎟️ TASK-38: Operações de Atualização (PUT) e Exclusão (DELETE)
+
+Repositório: `plan-management-api`
+
+### 📋 O Que Você Deve Fazer (Critérios de Aceite)
+
+    1. Camada de Serviço: `PlanoService`
+
+    Adicione dois novos métodos na sua classe de serviço:
+
+        Método 1: `public PlanoTelefonia atualizar(Long id, PlanoTelefonia planoAtualizado)`
+            Deve procurar na lista o plano pelo `id`.
+            Se encontrar, atualize os dados desse plano (`nome`, `franquiaGb`, `valorMensal`) com as informações recebidas em
+                `planoAtualizado` e retorne o plano alterado.
+            Se não encontrar o plano pelo `id`, retorne `null`.
+
+
+        Método 2: `public boolean deletar(Long id)`
+            Deve procurar na lista o plano pelo `id`.
+            Se encontrar, remova o plano da lista (dica: pode usar `planos.removeIf(p -> p.getId().equals(id))`) e retorne `true`.
+            Se o `id` não existir na lista, retorne `false`.
+
+
+
+---
+
+    2. Controlador REST: `PlanoController`
+
+    Exponha os novos endpoints mapeando os verbos HTTP correspondentes:
+
+    Endpoint PUT (Atualizar Plano)
+        Verbo HTTP & Rota: `PUT /api/planos/{id}`
+        Anotações: `@PutMapping("/{id}")`
+        Parâmetros: Capture o ID da URL via `@PathVariable Long id` e receba os novos dados no
+            corpo da requisição via `@RequestBody PlanoTelefonia plano`.
+        Comportamento: Chama `planoService.atualizar(id, plano)` e retorne o objeto atualizado (ou uma mensagem confirmando a alteração).
+
+
+    Endpoint DELETE (Remover Plano)
+        Verbo HTTP & Rota:** `DELETE /api/planos/{id}`
+        Anotações: `@DeleteMapping("/{id}")`
+        Parâmetros: Capture o ID via `@PathVariable Long id`.
+        Comportamento: Chama `planoService.deletar(id)` e retorne uma `String` confirmando a remoção (ex: `"Plano removido com sucesso!"`).
+
+
+
+---
+
+### 🧪 Roteiro de Testes no Postman
+
+    1. Suba a aplicação no IntelliJ.
+    2. Faça um `POST /api/planos` para criar um plano inicial (ex: ID 1, "Plano Controle 10GB").
+    3. Faça um `PUT /api/planos/1` trocando o nome para "Plano Controle 20GB Turbo" e o valor.
+    4. Faça um `GET /api/planos/1` para verificar se os dados mudaram.
+    5. Faça um `DELETE /api/planos/1` para apagar o registro.
+    6. Faça um `GET /api/planos` para garantir que a lista ficou vazia novamente!
+
+---
