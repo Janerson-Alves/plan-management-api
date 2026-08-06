@@ -34,6 +34,8 @@ Base URL: `http://localhost:8080/api/planos`
 | **GET** | `/` | Lista todos os planos cadastrados | `200 OK` |
 | **GET** | `/{id}` | Busca um plano específico pelo ID | `200 OK` |
 | **POST** | `/` | Cadastra um novo plano de serviço | `200 OK` |
+| **PUT** | `/{id}` | Atualiza os dados de um plano existente | `200 OK` |
+| **DELETE** | `/{id}` | Remove um plano de serviço | `200 OK` |
 
 ---
 
