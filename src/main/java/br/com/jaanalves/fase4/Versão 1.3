@@ -1,0 +1,96 @@
+🏬 História de Usuário & Contexto do Cliente
+
+Cliente:** Diretoria de Qualidade e Governança de Dados — Vivo Telecom
+
+Contexto de Negócio:
+
+> "Galera do dev, a API de vocês tá funcionando e o CRUD tá bonito no Postman, MAS a gente teve um problema grave ontem em homologação.
+> Um analista sem querer fez um `POST` enviando o nome do plano em branco, a franquia com valor negativo (-50GB) e o valor mensal zerado.
+    O sistema de vocês aceitou e salvou essa 'aberração' na memória! Para piorar, quando o app mobile tentou buscar esse plano,
+    ele quebrou e deu erro de sistema.
+> A Nossa Necessidade: Não podemos permitir que dados 'lixo' entrem no nosso sistema!
+    Precisamos que a API de Provisionamento v1 tenha uma **camada de validação rígida de dados de entrada.
+    Se a requisição vier sem nome, com valores negativos ou vazios, a API deve recusar imediatamente no Controller
+    e devolver um código HTTP 400 (Bad Request)!"
+
+---
+
+## 🎟️ TASK-39: Validação de DTOs com Bean Validation (Spring Boot Validation)
+
+Repositório: `plan-management-api`
+
+Para resolver a dor do cliente, vamos usar o padrão do mercado Java: **Hibernate Validator / Bean Validation**.
+
+---
+
+📋 O Que Você Deve Fazer (Critérios de Aceite)
+
+1. Adicionar a Dependência no `pom.xml`
+
+    No Spring Boot 3, as anotações de validação ficam em um starter separado. Abra seu `pom.xml` e adicione nas `<dependencies>`:
+
+    ```xml
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    ```
+
+    (Após colar, clique no ícone do Maven no canto superior direito do IntelliJ para recarregar as dependências).
+
+---
+
+#### 2. Anotar o DTO: `PlanoTelefonia` (`dto`)
+
+    Adicione anotações de validação nos atributos do DTO:
+
+    `nome`: Não pode ser nulo nem vazio.
+        Use `@NotBlank(message = "O nome do plano é obrigatório")`
+
+
+    `franquiaGb`: Deve ser um valor positivo (maior que zero).
+        Use `@Positive(message = "A franquia deve ser maior que zero")`
+
+
+    `valorMensal`: Deve ser um valor positivo (maior que zero).
+        Use `@Positive(message = "O valor mensal deve ser maior que zero")`
+
+
+
+---
+
+#### 3. Ativar a Validação no Controller: `PlanoController` (`controllers`)
+
+    Para o Spring ativar a checagem do DTO antes de entrar no método, você precisa colocar a anotação
+        `@Valid` antes do `@RequestBody` nos endpoints de cadastro (`POST`) e atualização (`PUT`):
+
+    ```java
+    // No POST:
+    public String cadastrarPlano(@Valid @RequestBody PlanoTelefonia plano) { ... }
+
+    // No PUT:
+    public PlanoTelefonia atualizarporId(@PathVariable Long id, @Valid @RequestBody PlanoTelefonia plano) { ... }
+
+    ```
+
+---
+
+### 🧪 Roteiro de Testes no Postman (A "Prova de Fogo")
+
+1. Suba a aplicação no IntelliJ.
+2. No Postman, tente fazer um **POST** `/api/planos` enviando um JSON "inválido":
+    ```json
+    {
+      "id": 99,
+      "nome": "",
+      "franquiaGb": -10,
+      "valorMensal": 0
+    }
+
+    ```
+
+
+3. O resultado esperado:** A API deve recusar e retornar o status `400 Bad Request`! 🛑
+4. Em seguida, envie um JSON correto e veja ele responder `200 OK`.
+---

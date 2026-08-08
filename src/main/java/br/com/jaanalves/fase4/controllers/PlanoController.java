@@ -2,6 +2,7 @@ package br.com.jaanalves.fase4.controllers;
 
 import br.com.jaanalves.fase4.dto.PlanoTelefonia;
 import br.com.jaanalves.fase4.services.PlanoService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -44,7 +45,7 @@ public class PlanoController {
     // converter para o DTO PlanoTelefonia, imprimir as informações recebidas no console
     // da aplicação e retornar uma String confirmando o cadastro.
     @PostMapping
-    public String cadastrarPlano(@RequestBody PlanoTelefonia plano) {
+    public String cadastrarPlano(@Valid @RequestBody PlanoTelefonia plano) {
         planoService.cadastrar(plano);
         return "Plano cadastrado com sucesso";
     }
@@ -53,7 +54,7 @@ public class PlanoController {
     // Usa a anotação @PathVariable Long id para capturar o ID vindo da URL (ex: /api/planos/1)
     // Usa a anotação @RequestBody para atualizar os valores do ID especifico, e retorna os valores atualizados
     @PutMapping("/{id}")
-    public PlanoTelefonia atualizarporId(@PathVariable Long id, @RequestBody PlanoTelefonia plano) {
+    public PlanoTelefonia atualizarporId(@PathVariable Long id, @Valid @RequestBody PlanoTelefonia plano) {
         return planoService.atualizar(id, plano);
     }
 

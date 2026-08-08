@@ -1,9 +1,16 @@
 package br.com.jaanalves.fase4.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+
 public class PlanoTelefonia {
     private Long id;
+
+    @NotBlank(message = "O nome do plano é obrigatório")
     private String nome;
+    @Positive(message = "A franquia deve ser maior que zero")
     private int franquiaGb;
+    @Positive(message = "O valor mensal deve ser maior que zero")
     private double valorMensal;
 
 
