@@ -10,6 +10,7 @@ O projeto aplica os princípios de Clean Code e arquitetura em camadas desacopla
 
 - **Java 20**
 - **Spring Boot 3** (Spring Web)
+- **Spring Boot Validation** (Bean Validation / Hibernate Validator)
 - **Maven** (Gerenciador de Dependências)
 - **Postman** (Testes e Validação de Endpoints)
 
@@ -17,10 +18,10 @@ O projeto aplica os princípios de Clean Code e arquitetura em camadas desacopla
 
 ## 📌 Arquitetura & Conceitos Aplicados
 
-- **Arquitetura em Camadas:** Divisão clara de responsabilidades entre a camada de exposição Web (`@RestController`) e a camada de regras de negócio (`@Service`).
-- **Injeção de Dependência:** Uso de `@Autowired` para desacoplamento e gerenciamento do ciclo de vida dos componentes pelo Spring IoC.
-- **Java Streams API:** Processamento declarativo e filtragem de dados em memória.
-- **RESTful Mappings:** Manipulação correta de verbos HTTP (`GET`, `POST`), corpo de requisição (`@RequestBody`) e parâmetros de rota (`@PathVariable`).
+- **Arquitetura em Camadas:** Divisão clara entre Web (`@RestController`) e Negócio (`@Service`).
+- **Injeção de Dependência:** Uso de `@Autowired` para gerenciamento do ciclo de vida dos componentes.
+- **Validação na Borda (Bean Validation):** Proteção dos endpoints com `@Valid`, `@NotBlank` e `@Positive`, retornando `400 Bad Request` para payloads inválidos.
+- **RESTful Mappings:** Manipulação completa de verbos HTTP (`GET`, `POST`, `PUT`, `DELETE`).
 
 ---
 
