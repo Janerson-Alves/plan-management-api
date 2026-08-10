@@ -44,6 +44,7 @@ public class PlanoController {
     //Comportamento: Deve receber no corpo da requisição (Request Body) o JSON enviado pelo cliente,
     // converter para o DTO PlanoTelefonia, imprimir as informações recebidas no console
     // da aplicação e retornar uma String confirmando o cadastro.
+    // Usa o @Valid para validar os dados passados.
     @PostMapping
     public String cadastrarPlano(@Valid @RequestBody PlanoTelefonia plano) {
         planoService.cadastrar(plano);
@@ -53,6 +54,7 @@ public class PlanoController {
     // Endpoint de atualizar dados, nome, FranquiaGb e valorMensal
     // Usa a anotação @PathVariable Long id para capturar o ID vindo da URL (ex: /api/planos/1)
     // Usa a anotação @RequestBody para atualizar os valores do ID especifico, e retorna os valores atualizados
+    // Usa o @Valid para validar os dados passados.
     @PutMapping("/{id}")
     public PlanoTelefonia atualizarporId(@PathVariable Long id, @Valid @RequestBody PlanoTelefonia plano) {
         return planoService.atualizar(id, plano);

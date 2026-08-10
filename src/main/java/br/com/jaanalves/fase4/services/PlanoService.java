@@ -1,6 +1,8 @@
 package br.com.jaanalves.fase4.services;
 
 import br.com.jaanalves.fase4.dto.PlanoTelefonia;
+import br.com.jaanalves.fase4.repository.PlanoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -12,24 +14,24 @@ public class PlanoService {
 
     private final List<PlanoTelefonia> planos = new ArrayList<>();
 
+    // Injetando o repositorio
+    @Autowired
+    private PlanoRepository planoRepository;
 
-    // Retorna a lista completa de planos
+    // Retorna a lista completa de planos do repository
     public List<PlanoTelefonia> listarTodos() {
-
-        return planos;
+        return planoRepository.findAll();
     }
 
-    // Procura na lista o plano com o ID informado (pode usar um for tradicional ou stream().filter()). Se não achar, pode retornar null.
+    // Procura na lista o plano com o ID informado (pode usar um for tradicional ou stream().filter()).
+    // Se não achar, pode retornar null.
     public PlanoTelefonia buscarPorId(long id) {
-        return planos.stream()
-                .filter(plano -> plano.getId() == id)
-                .findFirst()
-                .orElse(null);
+        return planoRepository.findById(id).orElse(null);
     }
 
-    //Adiciona o plano na lista e o retorna
+    //Adiciona o plano na lista e o retorna repository
     public PlanoTelefonia cadastrar(PlanoTelefonia plano) {
-        planos.add(plano);
+        planoRepository.save(plano);
         return plano;
     }
 
@@ -58,19 +60,16 @@ public class PlanoService {
 
      //Busca o plano na lista pelo id.
     //Se encontrar, remove-o da lista em memória e retorna true.
-    //Se o id não existir, retorna false
+    //Se o id não existir, retorna false do repository
     public boolean deletar(long id) {
-        // Filtra o ID
-        PlanoTelefonia filtroPeloId = planos.stream()
-                .filter(plano -> plano.getId() == id)
-                .findFirst()
-                .orElse(null);
-        // verifica se o Filtro e nulo.
-        if (filtroPeloId == null) {
+        // Filtra o ID pelo repositorio e retorna um valor booleano.
+        boolean filtroPeloId = planoRepository.existsById(id);
+        // Verifica se o valor retornando e False
+        if (!filtroPeloId) {
             return false;
         }
-        // Remove o filtro realizado e retorna true para a remoção
-        planos.remove(filtroPeloId);
+        // Se for True, ele deleta o Id filtrado.
+        planoRepository.deleteById(id);
         return true;
     }
 
