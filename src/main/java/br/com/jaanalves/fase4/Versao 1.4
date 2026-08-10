@@ -1,0 +1,131 @@
+
+🏬 História de Usuário & Contexto do Cliente
+
+Cliente:** Diretoria de Infraestrutura e Arquitetura de Dados — Vivo Telecom
+
+Contexto de Negócio:
+
+> "Galera do dev, a API de vocês tá com o CRUD completo e com validações ótimas. Porém,
+    temos um problema crítico de arquitetura: toda vez que o servidor cai ou é reiniciado para um deploy, todos os planos cadastrados na memória somem!
+> A Nossa Necessidade: Precisamos evoluir a API de Provisionamento v1 para utilizar persistência relacional.
+    O sistema deve mapear a classe de domínio no banco de dados e utilizar um repositório Spring Data JPA
+    para realizar as operações de leitura e escrita em uma base relacional (H2 em memória para ambiente de dev/testes)."
+
+---
+
+🎟️ TASK-40: Persistência de Dados com Spring Data JPA & H2 Database
+
+Repositório: `plan-management-api`
+
+
+
+ 📋 O Que Você Deve Fazer (Critérios de Aceite)
+
+1. Adicionar Dependências no `pom.xml`
+
+    Abra o `pom.xml` e adicione o Spring Data JPA e o driver do banco H2:
+
+        ```xml
+        <!-- Spring Data JPA para ORM e Repositórios -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- Banco de Dados em Memória H2 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- H2 Console -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-h2console</artifactId>
+        </dependency>
+
+        ```
+
+    (Não esqueça de clicar no ícone do Maven para recarregar as dependências no IntelliJ).*
+
+
+
+2. Configurar o `application.properties`
+
+    No arquivo `src/main/resources/application.properties`, adicione as configurações do banco H2 e do console web:
+
+        ```properties
+        spring.application.name=fase4-api-telefonia
+
+        # Configurando Banco H2
+        spring.datasource.url=jdbc:h2:mem:telecomdb
+        spring.datasource.driver-class-name=org.h2.Driver
+        spring.datasource.username=sa
+        spring.datasource.password=
+
+        # Habilitar o Console Web do H2
+        spring.h2.console.enabled=true
+        spring.h2.console.path=/h2-console
+
+        # JPA / Hibernate
+        spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+        spring.jpa.hibernate.ddl-auto=update
+        spring.jpa.show-sql=true
+
+        ```
+
+
+
+3. Mapear a Entidade JPA: `PlanoTelefonia`
+
+    Transforme sua classe de domínio em uma entidade JPA utilizando anotações de banco:
+
+        * Adicione `@Entity` e `@Table(name = "tb_planos")` acima da classe.
+        * No atributo `id`, adicione as anotações:
+        * `@Id`
+        * `@GeneratedValue(strategy = GenerationType.IDENTITY)` (O banco vai gerar o ID automaticamente agora!).
+
+
+
+
+
+4. Criar a Interface Repositório: `PlanoRepository`
+
+    Crie uma interface no pacote `repository` (ex: `br.com.jaanalves.fase4.repositories`):
+
+        ```java
+        package br.com.jaanalves.fase4.repositories;
+
+        import br.com.jaanalves.fase4.models.PlanoTelefonia;
+        import org.springframework.data.jpa.repository.JpaRepository;
+        import org.springframework.stereotype.Repository;
+
+        @Repository
+        public interface PlanoRepository extends JpaRepository<PlanoTelefonia, Long> {
+        }
+
+        ```
+
+
+
+5. Refatorar o `PlanoService`
+
+    Substitua a `List<PlanoTelefonia>` em memória e injete o `PlanoRepository`:
+
+        * **Injetar:** `@Autowired private PlanoRepository planoRepository;`
+        * **Cadastrar:** `planoRepository.save(plano)`
+        * **Listar Todos:** `planoRepository.findAll()`
+        * **Buscar por ID:** `planoRepository.findById(id).orElse(null)`
+        * **Deletar:** Se existir por ID (`planoRepository.existsById(id)`), chama `planoRepository.deleteById(id)`.
+
+
+
+🧪 Roteiro de Validação no Postman & Browser
+
+    1. Suba a aplicação no IntelliJ.
+    2. Acesse no navegador: `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:mem:telecomdb`, User: `sa`, Password em branco) e clique em Connect.
+    Veja se a tabela `TB_PLANOS` foi criada automaticamente!
+    3. No Postman, faça um **POST** `/api/planos` (agora sem passar o `id` no JSON, pois o banco gera automático!).
+    4. Faça um **GET** `/api/planos` e veja o registro vindo do banco de dados!
+
