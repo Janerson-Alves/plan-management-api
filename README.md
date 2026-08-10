@@ -10,7 +10,9 @@ O projeto aplica os princípios de Clean Code e arquitetura em camadas desacopla
 
 - **Java 20**
 - **Spring Boot 3** (Spring Web)
-- **Spring Boot Validation** (Bean Validation / Hibernate Validator)
+- **Spring Data JPA** (Persistência Relacional & ORM/Hibernate)
+- **H2 Database** (Banco de Dados Relacional em Memória)
+- **Spring Boot Validation** (Bean Validation)
 - **Maven** (Gerenciador de Dependências)
 - **Postman** (Testes e Validação de Endpoints)
 
