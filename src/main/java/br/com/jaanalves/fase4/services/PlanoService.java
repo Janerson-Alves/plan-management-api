@@ -73,5 +73,17 @@ public class PlanoService {
         return true;
     }
 
+    // Filtra pelo nome do plano
+    public List<PlanoTelefonia> buscarPorNome(String nome) {
+        return planoRepository.findByNomeContainingIgnoreCase(nome);
+    }
+
+    // Filtra pelo valor seja maior ou igual ao informado
+    public List<PlanoTelefonia> buscaporValorMaximo(double valorMax) {
+        return planoRepository.findByValorMensalLessThanEqual(valorMax);
+    }
+
+
+
 
 }

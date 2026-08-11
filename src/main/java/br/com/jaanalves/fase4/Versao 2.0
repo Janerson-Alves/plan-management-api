@@ -1,0 +1,84 @@
+🏬 História de Usuário & Contexto do Cliente
+
+Cliente: Diretoria de Operações e Portfólio — Vivo Telecom
+
+Contexto de Negócio:
+
+> "Fala, time de dev! A API de vocês rodando com banco de dados JPA ficou show de bola.
+    Porém, a nossa equipe de atendimento ao cliente precisa de buscas mais específicas no catálogo.
+> Hoje a API só busca por `ID` ou traz a lista inteira.
+    No dia a dia, um cliente liga perguntando: 'Quais planos vocês têm por menos de R$ 100,00?'
+    ou 'Vocês têm algum plano chamado Controle Turbo?'.
+> A Nossa Necessidade: Precisamos que a **API de Provisionamento v1** permita filtrar planos pelo Nome
+    (busca exata ou parcial) e pesquisar planos com
+    Valor Mensal menor ou igual a um determinado limite fornecido pelo usuário."
+
+---
+
+🎟️ TASK-41: Derived Query Methods no Spring Data JPA
+
+Repositório: `plan-management-api`
+
+No Spring Data JPA, você não precisa escrever SQL/JPQL na mão para buscas simples.
+O próprio Spring cria a query SQL em tempo de execução apenas lendo o **nome do método que você declara no Repository!
+
+---
+
+📋 O Que Você Deve Fazer (Critérios de Aceite)
+
+    1. Camada de Repositório: `PlanoRepository`
+
+    Abra a interface `PlanoRepository` e declare os novos métodos de busca customizados:
+
+        ```java
+        // Busca planos pelo nome contendo determinado texto (case-insensitive)
+        List<PlanoTelefonia> findByNomeContainingIgnoreCase(String nome);
+
+        // Busca planos cujo valor mensal seja menor ou igual ao informado
+        List<PlanoTelefonia> findByValorMensalLessThanEqual(double valorMaximo);
+
+        ```
+
+---
+
+    2. Camada de Serviço: `PlanoService`
+
+    Crie as chamadas de negócio repassando para o repositório:
+
+    `public List<PlanoTelefonia> buscarPorNome(String nome)`
+        Retorna o resultado de `planoRepository.findByNomeContainingIgnoreCase(nome)`.
+
+
+    `public List<PlanoTelefonia> buscarPorValorMaximo(double valorMaximo)`
+        Retorna o resultado de `planoRepository.findByValorMensalLessThanEqual(valorMaximo)`.
+
+
+
+---
+
+    3. Controlador REST: `PlanoController`
+
+    Exponha esses dois filtros como consultas via **Request Params (`@RequestParam`) ou rotas dedicadas:
+
+    Endpoint 1: Busca por Nome
+        Rota: `GET /api/planos/buscar-por-nome?nome=Controle`
+        Anotação: `@GetMapping("/buscar-por-nome")`
+        Parâmetro: `@RequestParam String nome`
+
+
+    Endpoint 2: Busca por Valor Máximo
+        Rota: `GET /api/planos/filtrar-preco?valorMaximo=100.0`
+        Anotação: `@GetMapping("/filtrar-preco")`
+        Parâmetro: `@RequestParam double valorMaximo`
+
+
+
+---
+🧪 Roteiro de Testes no Postman
+
+1. Suba a aplicação no IntelliJ.
+2. Faça POST para cadastrar 2 ou 3 planos diferentes
+    (ex: "Plano Controle 20GB" por 50.00, "Plano Fibra Premium" por 150.00).
+3. Teste o `GET /api/planos/buscar-por-nome?nome=controle` ➔ Deve retornar apenas os planos com "controle" no nome.
+4. Teste o `GET /api/planos/filtrar-preco?valorMaximo=60.00` ➔ Deve retornar apenas os planos de até R$ 60,00.
+

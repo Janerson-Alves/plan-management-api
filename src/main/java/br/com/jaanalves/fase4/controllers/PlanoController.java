@@ -67,4 +67,15 @@ public class PlanoController {
         return "Plano excluido com sucesso";
     }
 
+    // Endpoint filtro por nome Controle
+    @GetMapping("/buscar-por-nome")
+    public List<PlanoTelefonia> buscarPorNome(@RequestParam String nome) {
+        return planoService.buscarPorNome(nome);
+    }
+
+    // Endpoint Filtra pelo preço maximo de 100
+    @GetMapping("/filtrar-preco")
+    public List<PlanoTelefonia> buscaPorValor(@RequestParam double valorMaximo) {
+        return planoService.buscaporValorMaximo(valorMaximo);
+    }
 }
