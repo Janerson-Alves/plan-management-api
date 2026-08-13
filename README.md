@@ -12,9 +12,18 @@ O projeto aplica os princípios de Clean Code e arquitetura em camadas desacopla
 - **Spring Boot 3** (Spring Web)
 - **Spring Data JPA** (Persistência Relacional & ORM/Hibernate)
 - **H2 Database** (Banco de Dados Relacional em Memória)
-- **Spring Boot Validation** (Bean Validation)
+- **Spring Boot Validation** (Bean Validation & `@RestControllerAdvice`)
 - **Maven** (Gerenciador de Dependências)
 - **Postman** (Testes e Validação de Endpoints)
+
+---
+
+## 🛡️ Tratamento Global de Exceções (`@RestControllerAdvice`)
+
+A API conta com um manipulador global de exceções (`GlobalExceptionHandler`) que padroniza o formato dos erros retornados ao cliente em um DTO `ErroResposta`:
+
+- **`400 Bad Request`**: Interceptado via `@ExceptionHandler(MethodArgumentNotValidException.class)`. Formata e consolida todas as violações do Bean Validation (`@NotBlank`, `@Positive`) em uma mensagem detalhada e legível, acompanhada de `status`, `erro` e `timestamp`.
+- **`404 Not Found`**: Tratado no `RestController` com `ResponseEntity.notFound()` quando um recurso buscado, atualizado ou deletado por ID não existe na base de dados.
 
 ---
 
