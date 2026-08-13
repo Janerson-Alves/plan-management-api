@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 // avisa ao Spring que esta classe é um componente de serviço e gerencia regras de negócio
 @Service
@@ -23,10 +24,9 @@ public class PlanoService {
         return planoRepository.findAll();
     }
 
-    // Procura na lista o plano com o ID informado (pode usar um for tradicional ou stream().filter()).
-    // Se não achar, pode retornar null.
-    public PlanoTelefonia buscarPorId(long id) {
-        return planoRepository.findById(id).orElse(null);
+    // Retorna um Optional que pode ou não conter um plano
+    public Optional<PlanoTelefonia> buscarPorId(long id) {
+        return planoRepository.findById(id);
     }
 
     //Adiciona o plano na lista e o retorna repository
@@ -45,12 +45,11 @@ public class PlanoService {
                 .findFirst()
                 .orElse(null);
 
-        // verifica se o Filtro e nulo.
+        //verifica se o Filtro e nulo.
         if (filtroPeloId == null) {
             return null;
         }
 
-        // Atualizando os valores
         filtroPeloId.setNome(planoAtualizado.getNome());
         filtroPeloId.setFranquiaGb(planoAtualizado.getFranquiaGb());
         filtroPeloId.setValorMensal(planoAtualizado.getValorMensal());

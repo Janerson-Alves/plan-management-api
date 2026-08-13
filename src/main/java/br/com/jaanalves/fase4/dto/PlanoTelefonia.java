@@ -3,6 +3,7 @@ package br.com.jaanalves.fase4.dto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import org.springframework.http.ResponseEntity;
 
 
 // Entidades para criação da tabela tb_planos com table
@@ -67,5 +68,9 @@ public class PlanoTelefonia {
 
     public void setValorMensal(double valorMensal) {
         this.valorMensal = valorMensal;
+    }
+
+    public ResponseEntity<PlanoTelefonia> map() {
+        return null;
     }
 }

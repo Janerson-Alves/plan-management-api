@@ -1,0 +1,90 @@
+Hoje, para fecharmos a regência do nosso CRUD com Spring Data JPA com chave de ouro,
+    temos um ajuste de arquitetura essencial no ecossistema REST Java:
+    Tratamento Elegante de Exceções e Respostas HTTP Semânticas com `Optional`.
+
+---
+
+## 🏬 História de Usuário & Contexto do Cliente
+
+Cliente: Equipe de Arquitetura & Integração Mobile — Vivo Telecom
+
+Contexto de Negócio:
+
+> "Fala, time de backend! A API de vocês com buscas customizadas está voando. Porém, temos um pequeno detalhe de contrato REST.
+> Quando o aplicativo chama o endpoint `GET /api/planos/{id}` passando um ID que não existe (por exemplo, ID `999`),
+    a API de vocês está retornando `200 OK` com o corpo da resposta em branco (`null`).
+> A Nossa Necessidade: Segundo os padrões RESTful, se um recurso solicitado por ID não existe na base de dados,
+    a API deve responder de forma clara com o status `404 Not Found`! Da mesma forma, ao tentar atualizar (`PUT`)
+    ou deletar (`DELETE`) um plano inexistente, a API deve acusar o erro HTTP adequado em vez de falhar em silêncio."
+
+---
+
+## 🎟️ TASK-42: Tratamento de Exceções REST com `Optional` e `ResponseEntity`
+
+Repositório: `plan-management-api`
+
+O método `planoRepository.findById(id)` do Spring Data JPA não retorna diretamente o objeto, ele retorna um `Optional<PlanoTelefonia>`.
+    O Java `Optional` serve exatamente para evitarmos o clássico `NullPointerException` e tratarmos a ausência de dados de forma elegante!
+
+---
+
+📋 O Que Você Deve Fazer (Critérios de Aceite)
+
+    1. Refatorar a Busca por ID no `PlanoService`
+
+        Ajuste a camada de serviço para retornar o `Optional`:
+
+            ```java
+            // Retorna um Optional que pode ou não conter o plano
+            public Optional<PlanoTelefonia> buscarPorId(Long id) {
+                return planoRepository.findById(id);
+            }
+
+            ```
+
+
+
+    2. Refatorar o `PlanoController` com `ResponseEntity`
+
+        Utilize a estrutura `ResponseEntity` do Spring para manipular os status HTTP (`200 OK` vs `404 Not Found`):
+
+            ```java
+            // GET /api/planos/{id}
+            @GetMapping("/{id}")
+            public ResponseEntity<PlanoTelefonia> buscarPorId(@PathVariable Long id) {
+                return planoService.buscarPorId(id)
+                        .map(plano -> ResponseEntity.ok(plano)) // Se encontrou, retorna 200 OK com o plano
+                        .orElse(ResponseEntity.notFound().build()); // Se não encontrou, retorna 404 Not Found
+            }
+
+            ```
+
+
+
+    3. Ajustar os Endpoints de `PUT` e `DELETE` no Controller
+
+        Garanta que, se tentar atualizar ou excluir um ID inexistente, a API responda **`404 Not Found`**:
+
+            Para o `PUT` (`atualizarPorId`):
+                Verifique se o plano existe com `planoRepository.existsById(id)`.
+                Se existir, executa a atualização e retorna `ResponseEntity.ok(planoAtualizado)`.
+                Se não existir, retorna `ResponseEntity.notFound().build()`.
+
+
+            Para o `DELETE` (`removerPorId`):
+                Se existir, deleta e retorna `ResponseEntity.noContent().build()` (`204 No Content` é o
+                    padrão REST mais elegante para remoção com sucesso!).
+                Se não existir, retorna `ResponseEntity.notFound().build()`.
+
+
+
+---
+
+🧪 Roteiro de Testes no Postman (A Prova de Fogo)
+
+    1. Suba a aplicação no IntelliJ.
+    2. Faça um GET para `/api/planos/999` (ID inexistente) ➔ Veja a API responder **`404 Not Found`** com resposta limpa!
+    3. Faça um DELETE para `/api/planos/999` ➔ Deve responder **`404 Not Found`**.
+    4. Faça um DELETE para um ID que existe ➔ Deve responder **`204 No Content`**!
+
+---
