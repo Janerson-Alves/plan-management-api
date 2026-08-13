@@ -35,12 +35,12 @@ Base URL: `http://localhost:8080/api/planos`
 | :--- | :--- | :--- | :--- |
 | **GET** | `/status` | Health Check da aplicação | `200 OK` |
 | **GET** | `/` | Lista todos os planos cadastrados | `200 OK` |
-| **GET** | `/{id}` | Busca um plano específico pelo ID | `200 OK` |
+| **GET** | `/{id}` | Busca um plano específico pelo ID | `200 OK` / `404 Not Found` |
 | **GET** | `/buscar-por-nome?nome={texto}` | Filtra planos por nome (case-insensitive) | `200 OK` |
 | **GET** | `/filtrar-preco?valorMaximo={valor}` | Filtra planos por valor máximo mensal | `200 OK` |
-| **POST** | `/` | Cadastra um novo plano de serviço | `200 OK` |
-| **PUT** | `/{id}` | Atualiza os dados de um plano existente | `200 OK` |
-| **DELETE** | `/{id}` | Remove um plano de serviço | `200 OK` |
+| **POST** | `/` | Cadastra um novo plano de serviço | `200 OK` / `400 Bad Request` |
+| **PUT** | `/{id}` | Atualiza os dados de um plano existente | `200 OK` / `400 Bad Request` / `404 Not Found` |
+| **DELETE** | `/{id}` | Remove um plano de serviço | `204 No Content` / `404 Not Found` |
 
 ---
 
