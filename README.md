@@ -44,6 +44,15 @@ Base URL: `http://localhost:8080/api/planos`
 
 ---
 
+## 🛡️ Tratamento de Respostas e Exceções
+
+- **`200 OK`**: Retornado em consultas e atualizações realizadas com sucesso.
+- **`204 No Content`**: Retornado na exclusão bem-sucedida de um registro.
+- **`400 Bad Request`**: Retornado pelo Bean Validation quando os dados enviados no payload ferem as regras de negócio (`@NotBlank`, `@Positive`).
+- **`404 Not Found`**: Retornado quando a operação busca, atualiza ou deleta um recurso com ID inexistente no banco de dados.
+
+---
+
 ## 💻 Exemplo de Payload (POST)
 
 **Endpoint:** `POST /api/planos`  
