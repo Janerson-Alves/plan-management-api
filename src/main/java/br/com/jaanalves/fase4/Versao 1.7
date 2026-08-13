@@ -1,0 +1,128 @@
+Hoje, para coroar a arquitetura da nossa API de Provisionamento e fechar a Fase 4
+como manda o figurino do mercado Java sênior, temos o desafio supremo: Tratamento Global de Exceções com
+`@RestControllerAdvice`.
+
+---
+
+## 🏬 História de Usuário & Contexto do Cliente
+
+Cliente: Equipe de Arquitetura & Governança — Vivo Telecom
+
+Contexto de Negócio:
+
+> "Fala, time de backend! A API de vocês está ótima, mas temos uma última demanda de padronização de erros.
+> Hoje, quando o cliente manda um JSON com dado inválido no `POST` ou `PUT`
+    (por exemplo, nome em branco ou valor negativo), o Spring intercepta no
+    `@Valid` e devolve aquele JSON padrão do framework (`timestamp`, `status: 400`, `error: Bad Request`),
+    que é genérico e não explica **quais campos** o usuário errou.
+> A Nossa Necessidade: Queremos centralizar todo o tratamento de exceções da aplicação em um
+    manipulador global (`@RestControllerAdvice`). Quando houver erro de validação (dados inválidos)
+    ou de recurso não encontrado, a API deve responder com uma estrutura de erro customizada,
+    limpa e indicando exatamente qual campo** feriu a regra de negócio!"
+
+---
+
+## 🎟️ TASK-43: Handler Global de Exceções (`@RestControllerAdvice`)
+
+Repositório: `plan-management-api`
+
+---
+
+📋 O Que Você Deve Fazer (Critérios de Aceite)
+
+    1. Criar o DTO de Resposta de Erro: `ErroResposta` (pacote `dto` ou `exceptions`)
+
+        Crie uma classe simples para padronizar o JSON de erro devolvido pela API:
+
+            ```java
+            package br.com.jaanalves.fase4.dto;
+
+            import java.time.LocalDateTime;
+
+            public class ErroResposta {
+                private LocalDateTime timestamp;
+                private int status;
+                private String erro;
+                private String mensagem;
+
+                public ErroResposta(int status, String erro, String mensagem) {
+                    this.timestamp = LocalDateTime.now();
+                    this.status = status;
+                    this.erro = erro;
+                    this.mensagem = mensagem;
+                }
+
+                // Getters e Setters
+                public LocalDateTime getTimestamp() { return timestamp; }
+                public int getStatus() { return status; }
+                public String getErro() { return erro; }
+                public String getMensagem() { return mensagem; }
+            }
+
+            ```
+
+---
+
+    2. Criar a Classe de Tratamento Global: `GlobalExceptionHandler` (pacote `exceptions`)
+
+    Crie uma classe e anote com `@RestControllerAdvice`.
+    Ela vai "escutar" e interceptar os erros disparados na aplicação inteira!
+
+            ```java
+            package br.com.jaanalves.fase4.exceptions;
+
+            import br.com.jaanalves.fase4.dto.ErroResposta;
+            import org.springframework.http.HttpStatus;
+            import org.springframework.http.ResponseEntity;
+            import org.springframework.web.bind.MethodArgumentNotValidException;
+            import org.springframework.web.bind.annotation.ExceptionHandler;
+            import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+            import java.util.stream.Collectors;
+
+            @RestControllerAdvice
+            public class GlobalExceptionHandler {
+
+                // Intercepta erros de validação do @Valid (Bean Validation)
+                @ExceptionHandler(MethodArgumentNotValidException.class)
+                public ResponseEntity<ErroResposta> tratarErroValidacao(MethodArgumentNotValidException ex) {
+
+                    // Pega todos os erros de campo e formata em uma mensagem legível
+                    String mensagens = ex.getBindingResult().getFieldErrors().stream()
+                            .map(erro -> erro.getField() + ": " + erro.getDefaultMessage())
+                            .collect(Collectors.joining(" | "));
+
+                    ErroResposta erro = new ErroResposta(
+                            HttpStatus.BAD_REQUEST.value(),
+                            "Erro de Validação nos Dados",
+                            mensagens
+                    );
+
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+                }
+            }
+
+            ```
+
+---
+
+🧪 Roteiro de Testes no Postman (A Prova de Fogo)
+
+    1. Suba a aplicação no IntelliJ.
+    2. Faça um **POST** `/api/planos` enviando um JSON inválido:
+    ```json
+    {
+      "nome": "",
+      "franquiaGb": -10,
+      "valorMensal": 0
+    }
+
+    ```
+
+
+3. O resultado esperado: A API deve retornar `400 Bad Request`, mas agora com o seu JSON customizado formatadinho,
+ dizendo exatamente:
+    "mensagem": "nome: O nome do plano é obrigatório | franquiaGb: A franquia deve ser maior que zero |
+    valorMensal: O valor mensal deve ser maior que zero"`!
+
+---
