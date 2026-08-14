@@ -1,6 +1,5 @@
-package br.com.jaanalves.fase4.exception;
+package br.com.jaanalves.fase4.exceptions;
 
-import br.com.jaanalves.fase4.dto.ErroResposta;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;

@@ -1,16 +1,13 @@
 package br.com.jaanalves.fase4.controllers;
 
-import br.com.jaanalves.fase4.dto.PlanoTelefonia;
+import br.com.jaanalves.fase4.dto.PlanoDTO;
+import br.com.jaanalves.fase4.entities.PlanoTelefonia;
 import br.com.jaanalves.fase4.repository.PlanoRepository;
 import br.com.jaanalves.fase4.services.PlanoService;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -55,8 +52,8 @@ public class PlanoController {
     // da aplicação e retornar uma String confirmando o cadastro.
     // Usa o @Valid para validar os dados passados.
     @PostMapping
-    public String cadastrarPlano(@Valid @RequestBody PlanoTelefonia plano) {
-        planoService.cadastrar(plano);
+    public String cadastrarPlano(@Valid @RequestBody PlanoDTO planoDTO) {
+        planoService.cadastrar(planoDTO);
         return "Plano cadastrado com sucesso";
     }
 
@@ -65,13 +62,13 @@ public class PlanoController {
     // Usa a anotação @RequestBody para atualizar os valores do ID especifico, e retorna os valores atualizados
     // Usa o @Valid para validar os dados passados.
     @PutMapping("/{id}")
-    public ResponseEntity<PlanoTelefonia> atualizarporId(@PathVariable Long id, @Valid @RequestBody PlanoTelefonia plano) {
+    public ResponseEntity<PlanoTelefonia> atualizarporId(@PathVariable Long id, @Valid @RequestBody PlanoDTO planoDTO) {
         // Verifica se o ID nao existe
         if (!planoRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
         // Caso o ID exista, atualiza e retorna OK 200
-        PlanoTelefonia planoAtualizado = planoService.atualizar(id, plano);
+        PlanoTelefonia planoAtualizado = planoService.atualizar(id, planoDTO);
 
         return ResponseEntity.ok(planoAtualizado);
     }
@@ -92,6 +89,7 @@ public class PlanoController {
     // Endpoint filtro por nome Controle
     @GetMapping("/buscar-por-nome")
     public List<PlanoTelefonia> buscarPorNome(@RequestParam String nome) {
+
         return planoService.buscarPorNome(nome);
     }
 

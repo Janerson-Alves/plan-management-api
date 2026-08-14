@@ -1,0 +1,122 @@
+Hoje, para coroar a nossa API e fechar a persistência com as melhores práticas de mercado,
+    temos um desafio indispensável: Separação Definitiva de Entidade (`@Entity`) e DTO (`Data Transfer Object`).
+
+---
+
+🏬 História de Usuário & Contexto do Cliente
+
+Cliente: Comitê de Arquitetura de Software — Vivo Telecom
+
+Contexto de Negócio:
+
+> "Fala, time de backend! A API de vocês está robusta, validando entradas e gravando no banco relacional. Porém,
+    identificamos um acoplamento na modelagem: a classe `PlanoTelefonia` está atuando **ao mesmo tempo
+    como Entidade do Banco (`@Entity`) e como DTO de entrada do Controller (`@Valid`, `@RequestBody`).
+> A Nossa Necessidade: Segundo os padrões de arquitetura limpa em Spring Boot, a camada de banco de dados (Entidade JPA) não deve ser
+    exposta diretamente para a web. Precisamos criar uma classe DTO dedicada para a entrada de dados (`PlanoDTO`),
+    mantendo a entidade `PlanoTelefonia` isolada para a persistência no banco de dados."
+
+---
+
+#🎟️ TASK-44: Desacoplamento de Entidade JPA e DTO de Entrada
+
+Repositório: `plan-management-api`
+
+---
+
+📋 O Que Você Deve Fazer (Critérios de Aceite)
+
+    1. Criar o DTO de Entrada: `PlanoDTO` (no pacote `dto`)
+
+        Este DTO conterá apenas os campos que o cliente envia no JSON, com as anotações do Bean Validation:
+
+        ```java
+        package br.com.jaanalves.fase4.dto;
+
+        import jakarta.validation.constraints.NotBlank;
+        import jakarta.validation.constraints.Positive;
+
+        public class PlanoDTO {
+
+            @NotBlank(message = "O nome do plano é obrigatório")
+            private String nome;
+
+            @Positive(message = "A franquia deve ser maior que zero")
+            private int franquiaGb;
+
+            @Positive(message = "O valor mensal deve ser maior que zero")
+            private double valorMensal;
+
+            // Getters e Setters
+            public String getNome() { return nome; }
+            public void setNome(String nome) { this.nome = nome; }
+
+            public int getFranquiaGb() { return franquiaGb; }
+            public void setFranquiaGb(int franquiaGb) { this.franquiaGb = franquiaGb; }
+
+            public double getValorMensal() { return valorMensal; }
+            public void setValorMensal(double valorMensal) { this.valorMensal = valorMensal; }
+        }
+
+        ```
+
+---
+
+    2. Limpar a Entidade: `PlanoTelefonia` (no pacote `models` ou `entity`)
+
+        A entidade JPA cuidará exclusivamente do banco de dados
+        (remova as anotações de validação web dela, deixando apenas as do JPA):
+
+        ```java
+        @Entity
+        @Table(name = "tb_planos")
+        public class PlanoTelefonia {
+
+            @Id
+            @GeneratedValue(strategy = GenerationType.IDENTITY)
+            private Long id;
+
+            @Column(nullable = false)
+            private String nome;
+
+            @Column(nullable = false)
+            private int franquiaGb;
+
+            @Column(nullable = false)
+            private double valorMensal;
+
+            // Construtores, Getters e Setters
+        }
+
+        ```
+
+---
+
+    3. Ajustar o `PlanoService` para Conversão (DTO ➔ Entidade)
+
+        Crie um método para converter os dados recebidos no `PlanoDTO` para a entidade `PlanoTelefonia` antes de salvar no repositório:
+
+            Salvar: Recebe `PlanoDTO`, instancia `PlanoTelefonia`, seta os atributos e chama `planoRepository.save(plano)`.
+            Atualizar: Recebe `id` e `PlanoDTO`, busca a entidade existente por ID, atualiza seus dados com os valores do
+            DTO e chama `planoRepository.save(planoExistente)`.
+
+---
+
+    4. Ajustar o `PlanoController`
+
+        No `POST` e no `PUT`, troque o parâmetro `@RequestBody PlanoTelefonia` por:
+
+            ```java
+            @Valid @RequestBody PlanoDTO dto
+
+            ```
+
+---
+
+🧪 Roteiro de Testes no Postman
+
+    1. Suba a aplicação no IntelliJ.
+    2. Faça um **POST** `/api/planos` passando o JSON do plano (sem ID).
+    3. Faça um **GET** `/api/planos` e veja se o registro foi salvo no banco normalmente.
+    4. Faça um **POST** `/api/planos` com payload inválido para garantir que o seu `GlobalExceptionHandler`
+        continua capturando as mensagens de validação do novo `PlanoDTO`!

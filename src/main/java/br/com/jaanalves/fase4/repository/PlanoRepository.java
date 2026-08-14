@@ -1,6 +1,6 @@
 package br.com.jaanalves.fase4.repository;
 
-import br.com.jaanalves.fase4.dto.PlanoTelefonia;
+import br.com.jaanalves.fase4.entities.PlanoTelefonia;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

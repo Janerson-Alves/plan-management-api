@@ -1,8 +1,6 @@
-package br.com.jaanalves.fase4.dto;
+package br.com.jaanalves.fase4.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 
 
@@ -14,14 +12,11 @@ public class PlanoTelefonia {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    // O campo não pode ser vazio, será validado com @valid no Controller
-    @NotBlank(message = "O nome do plano é obrigatório")
+    @Column(nullable = false)
     private String nome;
-    // O campo não pode ser negativo, será validado com @valid no Controller
-    @Positive(message = "A franquia deve ser maior que zero")
+    @Column(nullable = false)
     private int franquiaGb;
-    // O campo não pode ser negativo, será validado com @valid no Controller
-    @Positive(message = "O valor mensal deve ser maior que zero")
+    @Column(nullable = false)
     private double valorMensal;
 
 
@@ -58,7 +53,7 @@ public class PlanoTelefonia {
         return franquiaGb;
     }
 
-    public void setFranquiaGb(int franquaGb) {
+    public void setFranquiaGb(int franquiaGb) {
         this.franquiaGb = franquiaGb;
     }
 

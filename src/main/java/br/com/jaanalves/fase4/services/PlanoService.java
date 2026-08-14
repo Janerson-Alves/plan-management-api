@@ -1,6 +1,7 @@
 package br.com.jaanalves.fase4.services;
 
-import br.com.jaanalves.fase4.dto.PlanoTelefonia;
+import br.com.jaanalves.fase4.dto.PlanoDTO;
+import br.com.jaanalves.fase4.entities.PlanoTelefonia;
 import br.com.jaanalves.fase4.repository.PlanoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,16 +22,25 @@ public class PlanoService {
 
     // Retorna a lista completa de planos do repository
     public List<PlanoTelefonia> listarTodos() {
+
         return planoRepository.findAll();
     }
 
     // Retorna um Optional que pode ou não conter um plano
     public Optional<PlanoTelefonia> buscarPorId(long id) {
+
         return planoRepository.findById(id);
     }
 
     //Adiciona o plano na lista e o retorna repository
-    public PlanoTelefonia cadastrar(PlanoTelefonia plano) {
+    public PlanoTelefonia cadastrar(PlanoDTO planoDTO) {
+        // Instancia um novo Plano
+        PlanoTelefonia plano = new PlanoTelefonia();
+        // Converte o PlanoDTO para Entity PlanoTelefonia
+        plano.setNome(planoDTO.getNome());
+        plano.setFranquiaGb(planoDTO.getFranquiaGb());
+        plano.setValorMensal(planoDTO.getValorMensal());
+        // Salva o plano
         planoRepository.save(plano);
         return plano;
     }
@@ -38,23 +48,21 @@ public class PlanoService {
     // Atualiza o plano, Busca o plano na lista pelo id Se encontrar, altera seus campos
     // (nome, franquiaGb, valorMensal) para os novos valores recebidos e retorna o plano atualizado.
     // Se não encontrar, retorna null.
-     public PlanoTelefonia atualizar(Long id, PlanoTelefonia planoAtualizado) {
-         // Filtra o ID
-        PlanoTelefonia filtroPeloId = planos.stream()
-                .filter(plano -> plano.getId() == id)
-                .findFirst()
-                .orElse(null);
+     public PlanoTelefonia atualizar(Long id, PlanoDTO planoDTO) {
+         // Filtra o ID, caso não encontre, retorna nulo.
+        PlanoTelefonia planoExistente = planoRepository.findById(id).orElse(null);
 
         //verifica se o Filtro e nulo.
-        if (filtroPeloId == null) {
+        if (planoExistente == null) {
             return null;
         }
 
-        filtroPeloId.setNome(planoAtualizado.getNome());
-        filtroPeloId.setFranquiaGb(planoAtualizado.getFranquiaGb());
-        filtroPeloId.setValorMensal(planoAtualizado.getValorMensal());
-
-        return filtroPeloId;
+        // Atualiza os valores.
+        planoExistente.setNome(planoDTO.getNome());
+        planoExistente.setFranquiaGb(planoDTO.getFranquiaGb());
+        planoExistente.setValorMensal(planoDTO.getValorMensal());
+        // Salva os valores
+        return planoRepository.save(planoExistente);
      }
 
      //Busca o plano na lista pelo id.

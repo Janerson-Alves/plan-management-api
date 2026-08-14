@@ -1,6 +1,5 @@
-package br.com.jaanalves.fase4.dto;
+package br.com.jaanalves.fase4.exceptions;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class ErroResposta {
