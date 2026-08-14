@@ -18,6 +18,19 @@ O projeto aplica os princípios de Clean Code e arquitetura em camadas desacopla
 
 ---
 
+## 🏗️ Estrutura do Projeto (Layered Architecture)
+
+A aplicação foi estruturada seguindo o padrão de arquitetura em camadas e desacoplamento de responsabilidades:
+
+- 📁 `controllers`: Camada de exposição dos endpoints REST (`PlanoController`).
+- 📁 `dto`: Objetos de transferência de dados com validações do Bean Validation (`PlanoDTO`).
+- 📁 `entities`: Entidades de mapeamento objeto-relacional JPA/Hibernate (`PlanoTelefonia`).
+- 📁 `exceptions`: Manipulador global de erros e padronização de respostas (`GlobalExceptionHandler`, `ErroResposta`).
+- 📁 `repository`: Interfaces de persistência e consultas via Spring Data JPA (`PlanoRepository`).
+- 📁 `services`: Regras de negócio, conversão de DTOs e orquestração (`PlanoService`).
+
+---
+
 ## 🛡️ Tratamento Global de Exceções (`@RestControllerAdvice`)
 
 A API conta com um manipulador global de exceções (`GlobalExceptionHandler`) que padroniza o formato dos erros retornados ao cliente em um DTO `ErroResposta`:
