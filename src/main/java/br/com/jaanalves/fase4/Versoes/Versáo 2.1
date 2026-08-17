@@ -1,0 +1,51 @@
+Contexto de Negócio:
+
+> "A nossa equipe de auditoria precisa garantir que não existam dois planos com o mesmo nome exato cadastrados na base.
+    Além disso, queremos um endpoint exclusivo para calcular estatísticas rápidas do catálogo:
+    a quantidade total de planos e a média do valor mensal dos planos ativos."
+
+---
+
+TASK-46: Validação de Regra de Negócio e Agregações Customizadas**
+
+Repositório: `plan-management-api`
+
+---
+
+Critérios de Aceite
+
+    1. Bloqueio de Nome Duplicado no Cadastro
+        Crie um método no `PlanoRepository` para checar existência por nome: `boolean existsByNomeIgnoreCase(String nome);`.
+        No `PlanoService.cadastrar(...)`, verifique se o nome já existe antes de salvar.
+        Se existir, lance uma exceção customizada ou trate no serviço para retornar erro explicativo
+            (ex: `IllegalArgumentException` com a mensagem *"Já existe um plano cadastrado com esse nome"*).
+        Capture essa exceção no `GlobalExceptionHandler` retornando **`400 Bad Request`** com o DTO `ErroResposta`.
+
+
+    2. DTO de Estatísticas: `EstatisticasDTO` (no pacote `dto`)
+        Crie um DTO contendo:
+        `long totalPlanos`
+        `double valorMedioMensal`
+
+
+
+
+    3. Cálculo de Estatísticas no `PlanoService**`
+        Crie o método `public EstatisticasDTO obterEstatisticas()`.
+        Busque todos os planos da base (`planoRepository.findAll()`).
+        Utilize Java Streams (`stream().mapToDouble(...).average()`) ou métodos derivados para
+        calcular o total e a média. Se a lista estiver vazia, a média deve ser `0.0`.
+
+
+    4. Novo Endpoint no `PlanoController**`
+        Mapeie a rota **`GET /api/planos/estatisticas`**.
+        Retorne `ResponseEntity<EstatisticasDTO>` com status `200 OK`.
+
+
+
+---
+
+Roteiro de Validação no Postman / Swagger
+
+    Tente cadastrar dois planos com o mesmo nome (ex: "Controle Turbo") e veja a API barrar o segundo com `400 Bad Request`.
+    Chame o endpoint `GET /api/planos/estatisticas` e valide se a contagem e a média dos valores cadastrados batem certinho.

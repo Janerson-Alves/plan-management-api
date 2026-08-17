@@ -8,9 +8,11 @@ import java.util.List;
 
 @Repository
 public interface PlanoRepository extends JpaRepository<PlanoTelefonia, Long> {
-    // Busca planos pelo ome contendo determinado texto (case-insensitive)
+    // Busca planos pelo nome contendo determinado texto (case-insensitive)
     List<PlanoTelefonia> findByNomeContainingIgnoreCase(String nome);
     // Busca olanos cujo o valor mensal seja maior ou igual ao informado
     List<PlanoTelefonia> findByValorMensalLessThanEqual(double valorMaximo);
+    // Verifica se existem nomes de planos duplicados
+    boolean existsByNomeIgnoreCase(String nome);
 
 }

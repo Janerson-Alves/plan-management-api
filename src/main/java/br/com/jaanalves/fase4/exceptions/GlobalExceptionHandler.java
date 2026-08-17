@@ -28,4 +28,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
     }
 
+    // Intercepta erros caso o nome do plano já possua cadastro (duplicados)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErroResposta> tratarErroArgumento(IllegalArgumentException ex) {
+        ErroResposta erro = new ErroResposta(
+                HttpStatus.BAD_REQUEST.value(),
+                "Erro de Validação nos Dados",
+                ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+
+    }
+
 }

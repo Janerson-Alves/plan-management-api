@@ -1,5 +1,6 @@
 package br.com.jaanalves.fase4.controllers;
 
+import br.com.jaanalves.fase4.dto.EstatisticasDTO;
 import br.com.jaanalves.fase4.dto.PlanoDTO;
 import br.com.jaanalves.fase4.entities.PlanoTelefonia;
 import br.com.jaanalves.fase4.repository.PlanoRepository;
@@ -97,5 +98,11 @@ public class PlanoController {
     @GetMapping("/filtrar-preco")
     public List<PlanoTelefonia> buscaPorValor(@RequestParam double valorMaximo) {
         return planoService.buscaporValorMaximo(valorMaximo);
+    }
+
+    // Endpoint de estatisticas
+    @GetMapping("/estatisticas")
+    public ResponseEntity<EstatisticasDTO> estatisticas() {
+        return ResponseEntity.ok(planoService.obterEstatisticas());
     }
 }

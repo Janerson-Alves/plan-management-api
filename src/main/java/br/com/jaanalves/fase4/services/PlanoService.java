@@ -1,5 +1,6 @@
 package br.com.jaanalves.fase4.services;
 
+import br.com.jaanalves.fase4.dto.EstatisticasDTO;
 import br.com.jaanalves.fase4.dto.PlanoDTO;
 import br.com.jaanalves.fase4.entities.PlanoTelefonia;
 import br.com.jaanalves.fase4.repository.PlanoRepository;
@@ -33,7 +34,12 @@ public class PlanoService {
     }
 
     //Adiciona o plano na lista e o retorna repository
+    // Verifica se ja possui um nome de plano ja cadastrado.
     public PlanoTelefonia cadastrar(PlanoDTO planoDTO) {
+        // Verifica se o nome do plano já está cadastrado
+        if (planoRepository.existsByNomeIgnoreCase(planoDTO.getNome())) {
+            throw new IllegalArgumentException("Já existe um plano cadastrado com esse nome");
+        }
         // Instancia um novo Plano
         PlanoTelefonia plano = new PlanoTelefonia();
         // Converte o PlanoDTO para Entity PlanoTelefonia
@@ -88,6 +94,24 @@ public class PlanoService {
     // Filtra pelo valor seja maior ou igual ao informado
     public List<PlanoTelefonia> buscaporValorMaximo(double valorMax) {
         return planoRepository.findByValorMensalLessThanEqual(valorMax);
+    }
+
+    // Calcular estatisticas qtd planos + valor medio dos planos.
+    public EstatisticasDTO obterEstatisticas() {
+        // Todos os planos
+        List<PlanoTelefonia> planos = planoRepository.findAll();
+
+        // Total de Planos
+        long total = planos.size();
+
+        // Media dos planos
+        double media = planos.stream()
+                .mapToDouble(PlanoTelefonia::getValorMensal)
+                .average()
+                .orElse(0.0);
+
+        return new EstatisticasDTO(total, media);
+
     }
 
 

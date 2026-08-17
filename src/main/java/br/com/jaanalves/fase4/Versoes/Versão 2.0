@@ -1,0 +1,67 @@
+Seu repositório está um espetáculo com arquitetura em camadas, Spring Data JPA, banco H2, Bean Validation, Derived Queries,
+    `ResponseEntity` e o `@RestControllerAdvice` padronizando tudo.
+
+Para fecharmos essa API com chave de ouro e deixar o projeto no padrão profissional de produção,
+    hoje temos a última grande entrega: **Documentação Interativa com Swagger (OpenAPI 3)**!
+
+---
+
+Contexto de Negócio:
+
+> "Fala, time de backend! A API está redonda e blindada. Agora, para disponibilizá-la aos times de front-end, mobile e terceiros,
+    precisamos de uma documentação visual e interativa onde qualquer desenvolvedor possa testar os endpoints e
+    ver os esquemas dos DTOs direto pelo navegador, sem precisar configurar o Postman."
+
+---
+
+TASK-45: Documentação Interativa com SpringDoc OpenAPI / Swagger
+
+Repositório: `plan-management-api`
+
+---
+
+Critérios de Aceite
+
+    1. Adicionar Dependência do Swagger no `pom.xml`
+        Insira a dependência do SpringDoc OpenAPI e recarregue o Maven:
+            ```xml
+            <!-- Documentação Interativa Swagger / OpenAPI 3 -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>2.5.0</version>
+            </dependency>
+
+            ```
+
+
+    2. Configurar Informações da API (Opcional, mas profissional)
+        Crie uma classe de configuração no pacote `config` (ex: `OpenApiConfig.java`):
+            ```java
+            package br.com.jaanalves.fase4.config;
+
+            import io.swagger.v3.oas.models.OpenAPI;
+            import io.swagger.v3.oas.models.info.Info;
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+
+            @Configuration
+            public class OpenApiConfig {
+
+                @Bean
+                public OpenAPI customOpenAPI() {
+                    return new OpenAPI()
+                            .info(new Info()
+                                    .title("Plan Management API")
+                                    .version("1.0")
+                                    .description("API RESTful para gestão e provisionamento de planos de telefonia"));
+                }
+            }
+
+```
+
+
+3. Validar no Navegador**
+    Suba a aplicação no IntelliJ.
+    Acesse: `http://localhost:8080/swagger-ui/index.html`
+    Veja todos os seus endpoints (`GET`, `POST`, `PUT`, `DELETE`), filtros de busca e o esquema do `PlanoDTO` mapeados e prontos para teste interativo!
