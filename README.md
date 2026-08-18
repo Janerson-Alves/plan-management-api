@@ -10,11 +10,22 @@ O projeto aplica os princípios de Clean Code e arquitetura em camadas desacopla
 
 - **Java 20**
 - **Spring Boot 3** (Spring Web)
-- **Spring Data JPA** (Persistência Relacional & ORM/Hibernate)
-- **H2 Database** (Banco de Dados Relacional em Memória)
+- **Spring Data JPA** (Hibernate ORM com `ddl-auto=update`)
+- **Docker & Docker Compose** (Containerização do Banco de Dados)
+- **PostgreSQL** (Banco de Dados Relacional em Container)
+- **DBeaver** (Gerenciamento e Inspeção de Dados)
 - **Spring Boot Validation** (Bean Validation & `@RestControllerAdvice`)
+- **SpringDoc OpenAPI / Swagger 3** (Documentação Interativa)
 - **Maven** (Gerenciador de Dependências)
-- **Postman** (Testes e Validação de Endpoints)
+
+---
+
+## 🐳 Como Executar o Banco de Dados (Docker)
+
+Para iniciar o banco de dados PostgreSQL conteinerizado, execute na raiz do projeto:
+
+```bash
+docker compose up -d
 
 ---
 
