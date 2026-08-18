@@ -26,6 +26,7 @@ Para iniciar o banco de dados PostgreSQL conteinerizado, execute na raiz do proj
 
 ```bash
 docker compose up -d
+```
 
 ---
 
