@@ -109,8 +109,10 @@ public class PlanoService {
                 .mapToDouble(PlanoTelefonia::getValorMensal)
                 .average()
                 .orElse(0.0);
+        // Formata a media trazendo somente dois numeros depois do .
+        double mediaFormatada = Math.round(media * 100.0) / 100.0;
 
-        return new EstatisticasDTO(total, media);
+        return new EstatisticasDTO(total, mediaFormatada);
 
     }
 

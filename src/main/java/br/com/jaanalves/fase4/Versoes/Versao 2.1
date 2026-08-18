@@ -1,0 +1,48 @@
+História de Usuário & Contexto do Cliente
+
+Hoje vamos subir o sarrafo da persistência de dados: PostgreSQL (ou MySQL).
+
+Cliente: Equipe de Infraestrutura & Banco de Dados — Vivo Telecom
+
+Contexto de Negócio:
+
+> "Fala, time de engenharia backend! Até o momento nossa API estava utilizando banco de dados em memória (H2),
+    o que fazia com que todos os dados fossem perdidos a cada reinicialização da aplicação.
+> Além disso, para mantermos o ambiente padronizado entre os desenvolvedores e não precisar instalar servidores de
+    banco diretamente no sistema operacional da máquina, decidimos padronizar a infraestrutura local com Docker.
+> A Nossa Necessidade: Precisamos que o banco de dados seja executado dentro de um container PostgreSQL via Docker Compose.
+    A aplicação Spring Boot deve se conectar a esse container, o Hibernate deve gerar o schema e as tabelas automaticamente
+    (`ddl-auto=update`), e vocês devem validar o fluxo de persistência visualmente utilizando o DBeaver."
+
+---
+
+TASK-47: Persistência com PostgreSQL em Container Docker, Hibernate DDL Auto e DBeaver
+
+Repositório: `plan-management-api`
+
+---
+
+Critérios de Aceite**
+
+1. Provisionamento do Banco via Docker Compose**
+    1.1 - Criar um arquivo `docker-compose.yml` na raiz do projeto configurando o serviço do PostgreSQL.
+    1.2 - Definir porta mapeada (ex: `5434:5432`), nome do container (`telefonia_db`), usuário, senha e o banco padrão (`telefonia_db`).
+    1.3 - Subir o serviço em background através do comando `docker compose up -d`.
+
+
+2. Dependência do Driver no `pom.xml`
+    2.1 - Remover a dependência do banco em memória H2 (se ainda estiver ativa).
+    2.2 - Adicionar o driver oficial do PostgreSQL (`org.postgresql:postgresql`).
+
+
+3. Configuração do `application.properties**`
+    3.1 - Apontar a `spring.datasource.url` para a porta e banco configurados no Docker (`jdbc:postgresql://localhost:5434/telefonia_db`).
+    3.2 - Configurar `username`, `password` e `driver-class-name`.
+    3.3 - Habilitar o Hibernate para criação e atualização automática das tabelas: `spring.jpa.hibernate.ddl-auto=update`.
+    3.4 - Configurar o dialeto do PostgreSQL e formatação dos logs SQL.
+
+
+4. Homologação e Inspeção Visual com DBeaver**
+    4.1 - Criar uma nova conexão PostgreSQL no DBeaver apontando para `localhost:5434` e autenticando no banco `telefonia_db`.
+    4.2 - Iniciar a aplicação Spring Boot no IntelliJ e confirmar no DBeaver a criação automática da tabela `tb_planos`.
+    4.3 - Realizar operações de cadastro via Swagger UI / Postman e confirmar no DBeaver que as linhas foram gravadas no banco de dados real.
