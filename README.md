@@ -68,7 +68,7 @@ Base URL: `http://localhost:8080/api/planos`
 | Método | Endpoint | Descrição | Status HTTP |
 | :--- | :--- | :--- | :--- |
 | **GET** | `/status` | Health Check da aplicação | `200 OK` |
-| **GET** | `/` | Lista todos os planos cadastrados | `200 OK` |
+| **GET** | `/?page=0&size=10&sort=nome,asc` | Lista os planos com paginação e ordenação | `200 OK` |
 | **GET** | `/{id}` | Busca um plano específico pelo ID | `200 OK` / `404 Not Found` |
 | **GET** | `/buscar-por-nome?nome={texto}` | Filtra planos por nome (case-insensitive) | `200 OK` |
 | **GET** | `/filtrar-preco?valorMaximo={valor}` | Filtra planos por valor máximo mensal | `200 OK` |
