@@ -2,6 +2,8 @@ package br.com.jaanalves.fase4.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import org.springdoc.core.converters.models.PageableAsQueryParam;
+import org.springframework.data.web.PageableDefault;
 
 public class PlanoDTO {
     // Campo obrigatorio

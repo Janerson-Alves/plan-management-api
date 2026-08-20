@@ -7,8 +7,14 @@ import br.com.jaanalves.fase4.repository.PlanoRepository;
 import br.com.jaanalves.fase4.services.PlanoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
@@ -31,10 +37,18 @@ public class PlanoController {
     }
 
 
-    // Retorna a lista de todos os planos cadastrados via service.listarTodos()
+    // Retorna a lista de todos os planos cadastrados paginados.
     @GetMapping
-    public List<PlanoTelefonia> listarTodos() {
-        return planoService.listarTodos();
+    public ResponseEntity<Page<PlanoTelefonia>> listar(
+            @ParameterObject
+            @PageableDefault(
+                    page = 0,
+                    size = 10,
+                    sort = "nome",
+                    direction = Sort.Direction.ASC
+            ) Pageable pageable) {
+
+        return ResponseEntity.ok(planoService.listarPaginado(pageable));
     }
 
     // Usa a anotação @PathVariable Long id para capturar o ID vindo da URL (ex: /api/planos/1) e

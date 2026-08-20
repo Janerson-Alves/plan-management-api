@@ -6,6 +6,8 @@ import br.com.jaanalves.fase4.entities.PlanoTelefonia;
 import br.com.jaanalves.fase4.repository.PlanoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +23,9 @@ public class PlanoService {
     @Autowired
     private PlanoRepository planoRepository;
 
-    // Retorna a lista completa de planos do repository
-    public List<PlanoTelefonia> listarTodos() {
-
-        return planoRepository.findAll();
+    // Retorna a lista completa de planos do repository paginado
+    public Page<PlanoTelefonia> listarPaginado(Pageable pageable) {
+        return planoRepository.findAll(pageable);
     }
 
     // Retorna um Optional que pode ou não conter um plano
@@ -115,6 +116,8 @@ public class PlanoService {
         return new EstatisticasDTO(total, mediaFormatada);
 
     }
+
+
 
 
 
