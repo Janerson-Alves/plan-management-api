@@ -17,6 +17,7 @@ O projeto aplica os princípios de Clean Code e arquitetura em camadas desacopla
 - **Spring Boot Validation** (Bean Validation & `@RestControllerAdvice`)
 - **SpringDoc OpenAPI / Swagger 3** (Documentação Interativa)
 - **Maven** (Gerenciador de Dependências)
+- **JUnit 5 & Mockito** (Testes Unitários Automatizados)
 
 ---
 
