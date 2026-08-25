@@ -1,0 +1,68 @@
+Testes Automatizados com JUnit 5 e Mockito.
+
+Vamos blindar a nossa camada de negócio (`PlanoService`) para garantir que
+    nenhuma alteração futura quebre as regras do sistema sem que a esteira de testes aponte o erro imediatamente.
+
+---
+
+História de Usuário & Contexto do Cliente
+
+Cliente: Time de Engenharia de Qualidade (QA) & Governança de Software — Vivo Telecom
+
+Contexto de Negócio:
+
+> "Fala, time de backend! A API está completa com banco conteinerizado, paginação, Swagger e validações.
+> Contudo, para aprovarmos o pipeline de integração contínua (CI/CD) para homologação e produção,
+    é obrigatório termos **testes unitários automatizados**. Precisamos garantir que a regra de cadastro
+    funcione perfeitamente sem bater no banco de dados real, testando o cenário de sucesso
+    e o cenário de duplicidade (bloqueio de nome repetido)."
+
+---
+
+TASK-49: Testes Unitários no Service com JUnit 5 e Mockito
+
+Repositório: `plan-management-api`
+
+---
+
+Critérios de Aceite
+
+    1. Criar a Classe de Teste Unitário**
+        1.1 Crie a classe `PlanoServiceTest` dentro do diretório de testes:
+        `src/test/java/br/com/jaanalves/fase4/services/PlanoServiceTest.java`.
+        1.2 Anote a classe com `@ExtendWith(MockitoExtension.class)`.
+
+
+2. Configuração de Mocks**
+    2.1 Injete o mock do repositório: `@Mock private PlanoRepository planoRepository;`
+    2.2 Injete os mocks na classe que será testada: `@InjectMocks private PlanoService planoService;`
+
+
+    3. Cenário 1: Cadastro com Sucesso (Caminho Feliz)**
+        3.1 Crie o método de teste: `deveCadastrarPlanoComSucesso()`.
+        3.2 Arrange (Cenário): Crie um `PlanoDTO` válido. Configure o mock para simular que o nome não existe
+            (`when(planoRepository.existsByNomeIgnoreCase(...)).thenReturn(false)`).
+            Configure o `when(planoRepository.save(any())).thenAnswer(...)` para retornar a
+            entidade com ID gerado ou salvar a entidade.
+        3.3 Act (Ação): Chame `planoService.cadastrar(dto)`.
+        3.4 Assert (Validação):** Verifique com `Assertions.assertNotNull(...)`, `Assertions.assertEquals(...)`
+        e valide com `Mockito.verify(planoRepository, times(1)).save(any())` que o método `save` foi realmente chamado.
+
+
+    4. Cenário 2: Erro ao Cadastrar Plano com Nome Duplicado (Caminho Triste)**
+        4.1 Crie o método de teste: `deveLancarExcecaoAoCadastrarPlanoComNomeDuplicado()`.
+        4.2 Arrange: Crie um `PlanoDTO`. Configure o mock para simular que o nome já existe
+            (`when(planoRepository.existsByNomeIgnoreCase(...)).thenReturn(true)`).
+        4.3 Act & Assert: Use `Assertions.assertThrows(IllegalArgumentException.class,
+            () -> planoService.cadastrar(dto))` para garantir que a exceção esperada é disparada.
+        4.4 Garanta que o repositório **nunca** chamou o método salvar:
+            `Mockito.verify(planoRepository, never()).save(any())`.
+
+
+
+---
+
+Roteiro de Validação no IntelliJ
+
+    Clique com o botão direito na classe `PlanoServiceTest` (ou no ícone verde ao lado do nome da classe) e selecione **Run 'PlanoServiceTest'**.
+    Valide se os testes executam em milissegundos e retornam as duas barras verdes (✅ All Tests Passed).
