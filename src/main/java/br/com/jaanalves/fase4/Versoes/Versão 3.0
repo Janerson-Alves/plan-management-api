@@ -1,0 +1,77 @@
+História de Usuário & Contexto do Cliente
+
+Cliente: Time de Segurança da Informação (SecOps) & Arquitetura — Vivo Telecom
+
+Contexto de Negócio:
+
+> "Fala, time de backend! Nossa API de planos está completa e testada, mas atualmente ela é 100% pública: qualquer pessoa na rede consegue criar,
+    alterar ou excluir planos.
+> A Nossa Necessidade: Para iniciarmos a blindagem da aplicação, precisamos adicionar o Spring Security ao projeto.
+    Nesta primeira etapa, queremos proteger todos os endpoints da API, exigindo autenticação HTTP Basic com usuários em memória
+    (`InMemoryUserDetailsManager`) e perfis de acesso distintos (`USER` e `ADMIN`), liberando apenas
+    os recursos de documentação do Swagger para acesso público."
+
+---
+
+TASK-51: Setup do Spring Security 6, Autenticação HTTP Basic e Perfis de Usuário (RBAC)
+
+Repositório: `plan-management-api`
+
+---
+
+Critérios de Aceite & Passo a Passo
+
+    1. Dependência no `pom.xml**`
+        1.1 Adicionar o starter de segurança do Spring Boot:
+            ```xml
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-security</artifactId>
+            </dependency>
+
+            ```
+
+
+        1.2 Recarregar o projeto Maven no IntelliJ.
+
+
+    2. Criar a Classe de Configuração de Segurança (`SecurityConfig`)
+        2.1 Criar a classe `SecurityConfig` no pacote `br.com.jaanalves.fase4.config` (ou pacote de segurança correspondente).
+        2.2 Anotar com `@Configuration` e `@EnableWebSecurity`.
+
+
+    3. Configuração do `SecurityFilterChain`
+        3.1 Definir as regras de autorização de requisições:
+        3.2 Público: Endpoints do Swagger / OpenAPI (`/v3/api-docs/`, `/swagger-ui/`, `/swagger-ui.html`).
+        3.3 Protegido: Todas as demais requisições (`/api/planos/**`) devem exigir autenticação (`authenticated()`).
+
+
+        3.4 Habilitar autenticação `httpBasic(Customizer.withDefaults())` e desabilitar `csrf(csrf -> csrf.disable())` para APIs REST stateless.
+
+
+    4. Configurar Usuários em Memória (`UserDetailsService`) & Criptografia (`PasswordEncoder`)**
+        4.1 Criar o bean de criptografia com `BCryptPasswordEncoder`:
+            ```java
+            @Bean
+            public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+            }
+
+            ```
+
+        4.2 Configurar o `InMemoryUserDetailsManager` com dois usuários de teste:
+        4.3 User comum: usuário `cliente`, senha criptografada `123456`, role `USER`.
+        4.4 Admin: usuário `admin`, senha criptografada `admin123`, role `ADMIN`.
+
+
+
+
+
+---
+
+Roteiro de Homologação
+
+1 Suba a aplicação no IntelliJ.
+2 Acesse o Swagger (`http://localhost:8080/swagger-ui/index.html`) e confirme que ele carrega sem pedir autenticação.
+3 Tente fazer uma requisição `GET /api/planos` sem credenciais (via Postman, Swagger ou navegador) e confirme o retorno com status `401 Unauthorized`.
+4 Passe as credenciais via **Basic Auth** no Postman ou Swagger e valide se o status `200 OK` retorna com os dados.

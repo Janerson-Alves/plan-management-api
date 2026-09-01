@@ -1,0 +1,62 @@
+Hoje chegamos ao grande marco da Fase 4: a TASK-50, o fechamento oficial da nossa API
+com esteira de build, validação completa de testes e preparação para a Fase 5.
+
+---
+
+História de Usuário & Contexto do Cliente
+
+Cliente: Time de DevOps & Release Management — Vivo Telecom
+
+Contexto de Negócio:
+
+> "Fala, time de backend! A `plan-management-api` atingiu todos os requisitos funcionais e de persistência:
+    arquitetura em camadas, validações globais, Swagger, banco PostgreSQL conteinerizado, paginação e testes unitários.
+> A Nossa Necessidade:** Para realizarmos a entrega formal da release da Fase 4,
+    precisamos garantir que o build da aplicação esteja passando 100% liso via linha de comando Maven
+    (`mvn clean test` e `mvn clean package`), gerando o artefato executável (`.jar`) de produção
+    pronto para ser empacotado em container ou deployado em nuvem."
+
+---
+
+TASK-50: Build de Produção, Execução de Testes via Maven e Fechamento da Fase 4
+
+Repositório:** `plan-management-api`
+
+---
+
+Critérios de Aceite & Passo a Passo
+
+    1. Execução Completa dos Testes via Maven CLI
+        1.1 Abra o terminal integrado no IntelliJ na raiz do projeto.
+        1.2 Execute o comando de validação de testes:
+            ```bash
+            ./mvnw clean test
+
+            ```
+            (ou `mvn clean test` caso tenha o Maven instalado no path do sistema)
+        1.3 Validação: Confirmar que o output final exibe `[INFO] BUILD SUCCESS` e
+            `Tests run: 2, Failures: 0, Errors: 0, Skipped: 0`.
+
+
+2. Geração do Pacote Executável (`.jar`)
+    2.1 Execute o comando de empacotamento:
+        ```bash
+        ./mvnw clean package -DskipTests=false
+
+        ```
+
+
+    2.2 Validação: Confirmar a criação do arquivo executável dentro da pasta `target/`
+        (ex: `target/fase4-0.0.1-SNAPSHOT.jar` ou nome configurado no `pom.xml`).
+
+
+    3. Execução Standalone do Jar (Simulação de Produção)
+        3.1 Garanta que o banco no Docker esteja rodando (`docker compose up -d`).
+        3.2 No terminal, execute a aplicação diretamente pelo `.jar` gerado:
+            ```bash
+            java -jar target/*.jar
+
+            ```
+        3.3 Validação: Confirmar que a aplicação sobe na porta `8080` sem depender da
+            IDE e responde com sucesso no navegador/Swagger (`http://localhost:8080/swagger-ui/index.html`).
+---
