@@ -2,7 +2,7 @@ Seu repositório está um espetáculo com arquitetura em camadas, Spring Data JP
     `ResponseEntity` e o `@RestControllerAdvice` padronizando tudo.
 
 Para fecharmos essa API com chave de ouro e deixar o projeto no padrão profissional de produção,
-    hoje temos a última grande entrega: **Documentação Interativa com Swagger (OpenAPI 3)**!
+    hoje temos a última grande entrega: **Documentação Interativa com Swagger (OpenAPI 3)!
 
 ---
 
