@@ -1,0 +1,58 @@
+Com a TASK-51 entregue e a infraestrutura básica do Spring Security 6 de pé, hoje vamos subir mais um degrau no controle de acesso:
+Autorização Baseada em Perfis (RBAC - Role-Based Access Control) por Método/Endpoint.
+
+---
+
+História de Usuário & Contexto do Cliente
+
+Cliente: Time de Segurança da Informação & Governança — Vivo Telecom
+
+Contexto de Negócio:
+
+> "Fala, time de backend! A proteção com autenticação básica já está funcionando, mas no momento qualquer usuário logado
+    (seja `cliente` ou `admin`) consegue fazer qualquer operação.
+> A Nossa Necessidade:** Precisamos restringir os acessos com regras claras de privilégio:
+>   1. Leituras (`GET`):** Usuários com perfil `USER` ou `ADMIN` podem consultar os planos e relatórios.
+>   2. Modificações (`POST`, `PUT`, `DELETE`):** Apenas usuários com perfil `ADMIN` têm permissão para criar, alterar ou excluir planos.
+> Se um usuário comum tentar cadastrar ou apagar um plano, a API deve retornar `403 Forbidden`."
+>
+>
+
+---
+
+TASK-52: Controle de Acesso Baseado em Perfis (RBAC) com HTTP Basic
+
+Repositório: `plan-management-api`
+
+---
+
+Critérios de Aceite & Passo a Passo
+
+    1. Ajustar as Permissões no `SecurityConfig**`
+        1.1Atualize a cadeia de autorização no método `securityFilterChain` utilizando métodos HTTP específicos (`HttpMethod.GET`, `HttpMethod.POST`, etc.) e as roles (`hasRole` ou `hasAnyRole`):
+            ```java
+            .authorizeHttpRequests(auth -> auth
+                // Rotas públicas do Swagger
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+
+                // Consultas (GET): liberadas para USER e ADMIN
+                .requestMatchers(HttpMethod.GET, "/api/planos/**").hasAnyRole("USER", "ADMIN")
+
+                // Operações de escrita/exclusão (POST, PUT, DELETE): restritas para ADMIN
+                .requestMatchers(HttpMethod.POST, "/api/planos/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/planos/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/planos/**").hasRole("ADMIN")
+
+                .anyRequest().authenticated()
+            )
+
+            ```
+
+---
+
+Roteiro de Homologação
+
+1 Suba a aplicação no IntelliJ.
+    1.1 Teste 1 (GET com USER): Autentique com `cliente` / `123456` e faça `GET /api/planos` ➔ Deve retornar `200 OK`.
+    1.2 Teste 2 (POST com USER): Autentique com `cliente` / `123456` e tente fazer um `POST /api/planos` para cadastrar um novo plano ➔ Deve retornar `403 Forbidden`.
+    1.3 Teste 3 (POST com ADMIN): Autentique com `admin` / `admin123` e execute o mesmo `POST /api/planos` ➔ Deve retornar **`200 OK`** (ou `201 Created`).

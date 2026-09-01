@@ -2,6 +2,7 @@ package br.com.jaanalves.fase4.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -32,12 +33,15 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-                        // API de planos: precisa estar autenticado
-                        .requestMatchers("/api/planos/**")
-                        .authenticated()
+                        // Consulta GET : Liberados para USER E ADMIN
+                        .requestMatchers(HttpMethod.GET,"/api/planos/**").hasAnyRole("USER", "ADMIN")
+                        // Operações de escrita/exclusão (POST, PUT, DELETE): Restritas somente para ADMIN
+                        .requestMatchers(HttpMethod.POST, "/api/planos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/planos/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/planos/**").hasRole("ADMIN")
+
                         // Outras rotas também precisam de autenticação
-                        .anyRequest()
-                        .authenticated()
+                        .anyRequest().authenticated()
                 )
 
                 // Ativa autenticação por usuário e senha
