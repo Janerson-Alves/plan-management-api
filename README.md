@@ -19,6 +19,7 @@ O projeto aplica os princípios de Clean Code e arquitetura em camadas desacopla
 - **Maven** (Gerenciador de Dependências)
 - **JUnit 5 & Mockito** (Testes Unitários Automatizados)
 - **Spring Security 6 & RBAC** (Autenticação HTTP Basic, BCrypt & Controle de Acesso por Roles: USER e ADMIN)
+- **Auth0 Java-JWT** (Geração, Assinatura HMAC256 e Validação de Tokens Stateless)
 
 ---
 
