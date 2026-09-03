@@ -1,4 +1,4 @@
-package br.com.jaanalves.fase4.config;
+package br.com.jaanalves.fase4.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

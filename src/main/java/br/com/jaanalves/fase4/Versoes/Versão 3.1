@@ -1,0 +1,93 @@
+Ontem consolidamos o controle de acesso com **RBAC** e HTTP Basic. Hoje vamos dar o salto definitivo de arquitetura corporativa:
+migrar da autenticação com estado/básica para **Autenticação Stateless com JWT (JSON Web Token)**.
+
+---
+
+História de Usuário & Contexto do Cliente
+
+Cliente: Arquitetura de Microsserviços & Segurança
+
+Contexto de Negócio:
+
+> "Fala, time de backend! A autenticação HTTP Basic funcionou muito bem para validar o conceito de permissões,
+    mas em arquiteturas modernas de microsserviços e apps distribuídos ela tem limitações sérias: as credenciais
+    precisam viajar codificadas em Base64 em cada requisição.
+> A Nossa Necessidade:** Precisamos migrar para um modelo **Stateless com JWT. O fluxo deve funcionar assim:
+>   1. O cliente envia usuário e senha para um endpoint público `POST /api/auth/login`.
+>   2. Se as credenciais forem válidas, a API gera e devolve um **Token JWT** assinado digitalmente, contendo username, roles e tempo de expiração.
+>   3. Nas requisições seguintes, o cliente não envia mais usuário e senha, apenas o token no header `Authorization: Bearer <token>`."
+
+---
+
+TASK-53: Configuração das Dependências JWT e Criação do `TokenService`
+
+Repositório: `plan-management-api`
+
+---
+
+Critérios de Aceite & Passo a Passo
+
+    1. Dependência da Biblioteca JWT no `pom.xml**`
+        1.1 Adicionar a biblioteca padrão do ecossistema Java para geração/validação de tokens (Auth0 java-jwt):
+            ```xml
+            <dependency>
+                <groupId>com.auth0</groupId>
+                <artifactId>java-jwt</artifactId>
+                <version>4.4.0</version>
+            </dependency>
+
+            ```
+
+
+        1.2 Recarregar o projeto Maven no IntelliJ.
+
+
+    2. Configuração da Chave Secreta no `application.properties**`
+        2.1 Definir a chave secreta e o emissor da aplicação:
+            ```properties
+            api.security.token.secret=${JWT_SECRET:minha-chave-secreta-super-segura-vivo-telecom-2026}
+
+            ```
+
+    3. Criação do Serviço de Token (`TokenService`)**
+        3.1 Criar a classe `TokenService` no pacote `br.com.jaanalves.fase4.security` (ou pacote correspondente).
+        3.2 Anotar com `@Service`.
+        3.3 Injetar o segredo via `@Value("${api.security.token.secret}") private String secret;`.
+        3.4 Implementar dois métodos principais:
+            3.4.1 `gerarToken(UserDetails usuario)`:
+                Configurar o algoritmo HMAC256 com a chave secreta: `Algorithm algorithm = Algorithm.HMAC256(secret);`.
+                Gerar o token com `JWT.create()`:
+                Emissor (`withIssuer("plan-management-api")`).
+                Dono do token (`withSubject(usuario.getUsername())`).
+                Data de expiração (`withExpiresAt(gerarDataExpiracao())` — ex: 2 horas).
+                Role do usuário como claim (`withClaim("role", ...)`).
+                Assinar com `sign(algorithm)`.
+
+
+
+
+        3.4.2 `validarToken(String tokenJWT)`**:
+            Recebe o token, verifica a assinatura e emissor usando `JWT.require(algorithm).withIssuer("plan-management-api").build().verify(tokenJWT)`.
+            Retorna o subject (nome do usuário) contido no token. Caso o token esteja expirado ou adulterado, captura `JWTVerificationException`
+            e retorna `null` ou string vazia.
+
+
+
+
+
+
+    4. Método Auxiliar de Expiração**
+        4.1 Criar método privado para calcular o tempo de vida do token:
+            ```java
+            private Instant gerarDataExpiracao() {
+                return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+            }
+
+            ```
+
+---
+
+Roteiro de Validação
+
+    1 Recarregue o Maven e certifique-se de que não há erros de importação na classe `TokenService`.
+    2 Crie um teste simples ou método de teste para validar a geração e a leitura do token.
