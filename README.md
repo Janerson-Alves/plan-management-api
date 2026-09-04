@@ -82,6 +82,14 @@ Base URL: `http://localhost:8080/api/planos`
 
 ---
 
+### 🛡️ Autenticação Stateless (JWT)
+* Todas as rotas de negócios exigem o cabeçalho HTTP:
+  `Authorization: Bearer <seu-token-jwt>`
+* Obtenha o token via `POST /api/auth/login`.
+* No Swagger UI, utilize o botão **Authorize 🔓** para persistir o token nas chamadas interativas.
+
+---
+
 ## 📖 Documentação Interativa (Swagger / OpenAPI)
 
 Com a aplicação rodando, acesse:
