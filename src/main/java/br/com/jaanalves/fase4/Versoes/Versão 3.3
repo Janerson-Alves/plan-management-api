@@ -1,0 +1,214 @@
+Agora que o endpoint `POST /api/auth/login` está gerando o token e o `TokenService` está validado,
+vamos fechar o ciclo completo da segurança implementando o Filtro de Segurança (`OncePerRequestFilter`).
+
+É ele quem vai interceptar cada requisição nas rotas protegidas, extrair o token do cabeçalho `Authorization: Bearer <token>`,
+validar a assinatura e autenticar o usuário no contexto do Spring Security!
+
+---
+
+### 📋 História de Usuário & Contexto do Cliente
+
+Cliente: Time de Arquitetura & Segurança da Informação
+
+Contexto de Negócio:
+
+> "Fala, time de backend! Nosso endpoint de login já gera tokens JWT assinados, mas as nossas rotas de negócio (`/api/planos/**`)
+    continuam desprotegidas contra requisições que usam esse token.
+> A Nossa Necessidade* Precisamos criar um filtro interceptador na esteira do Spring Security.
+    Cada requisição HTTP que chega na API deve ser inspecionada: se houver o cabeçalho `Authorization: Bearer <token>`,
+    a aplicação deve validar o token, identificar o usuário e carregar suas permissões no contexto do Spring.
+    Caso o token seja ausente ou inválido em rotas restritas, o acesso deve ser bloqueado."
+
+---
+
+### 🎯 TASK-55: Criação do Filtro Interceptador JWT (`SecurityFilter`), Configuração Stateless e OpenAPI Bearer Auth
+
+Repositório:** `plan-management-api`
+
+---
+
+🛠️ Critérios de Aceite & Passo a Passo
+
+    1. Criar a Classe `SecurityFilter` (`OncePerRequestFilter`)
+
+        * Criar a classe `SecurityFilter` no pacote `br.com.jaanalves.fase4.security`.
+        * Anotar com `@Component`.
+        * Injeção via construtor: Injetar `TokenService` e utilizar `@Lazy` no `UserDetailsService` (para quebrar ciclo de dependência na inicialização do Spring Boot).
+        * Implementar o método `doFilterInternal`:
+        * Extrair o token do cabeçalho `Authorization` (removendo o prefixo `Bearer `).
+        * Validar o token via `tokenService.validarToken(token)`.
+        * Se o login for válido (`login != null`), carregar o usuário via `userDetailsService.loadUserByUsername(login)`.
+        * Instanciar `UsernamePasswordAuthenticationToken` e autenticar via `SecurityContextHolder.getContext().setAuthentication(...)`.
+        * Chamar `filterChain.doFilter(request, response)` para repassar a requisição.
+
+
+
+        Código de referência:
+
+                    ```java
+                    package br.com.jaanalves.fase4.security;
+
+                    import jakarta.servlet.FilterChain;
+                    import jakarta.servlet.ServletException;
+                    import jakarta.servlet.http.HttpServletRequest;
+                    import jakarta.servlet.http.HttpServletResponse;
+                    import org.springframework.context.annotation.Lazy;
+                    import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+                    import org.springframework.security.core.context.SecurityContextHolder;
+                    import org.springframework.security.core.userdetails.UserDetails;
+                    import org.springframework.security.core.userdetails.UserDetailsService;
+                    import org.springframework.stereotype.Component;
+                    import org.springframework.web.filter.OncePerRequestFilter;
+
+                    import java.io.IOException;
+
+                    @Component
+                    public class SecurityFilter extends OncePerRequestFilter {
+
+                        private final TokenService tokenService;
+                        private final UserDetailsService userDetailsService;
+
+                        public SecurityFilter(TokenService tokenService, @Lazy UserDetailsService userDetailsService) {
+                            this.tokenService = tokenService;
+                            this.userDetailsService = userDetailsService;
+                        }
+
+                        @Override
+                        protected void doFilterInternal(HttpServletRequest request,
+                                                        HttpServletResponse response,
+                                                        FilterChain filterChain) throws ServletException, IOException {
+
+                            var token = recuperarToken(request);
+
+                            if (token != null) {
+                                var login = tokenService.validarToken(token);
+
+                                if (login != null) {
+                                    UserDetails usuario = userDetailsService.loadUserByUsername(login);
+
+                                    var authentication = new UsernamePasswordAuthenticationToken(
+                                            usuario,
+                                            null,
+                                            usuario.getAuthorities()
+                                    );
+
+                                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                                }
+                            }
+
+                            filterChain.doFilter(request, response);
+                        }
+
+                        private String recuperarToken(HttpServletRequest request) {
+                            var authHeader = request.getHeader("Authorization");
+                            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                                return null;
+                            }
+                            return authHeader.replace("Bearer ", "").trim();
+                        }
+                    }
+
+                    ```
+
+---
+
+    2. Configurar o `SecurityConfig` (Injeção de Parâmetro e Stateless)
+
+        * Definir o gerenciamento de sessão como `SessionCreationPolicy.STATELESS`.
+        * Receber a dependência de `SecurityFilter` diretamente como parâmetro no método `@Bean securityFilterChain(...)` (evitando `@Autowired` no atributo da classe).
+        * Adicionar o filtro antes de `UsernamePasswordAuthenticationFilter.class` usando `.addFilterBefore()`.
+
+        Código de referência:
+
+            ```java
+            @Bean
+            public SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityFilter securityFilter) throws Exception {
+                http
+                        .csrf(csrf -> csrf.disable())
+                        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .authorizeHttpRequests(auth -> auth
+                                .requestMatchers(
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html"
+                                ).permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                                .requestMatchers("/api/auth/**").permitAll()
+
+                                .requestMatchers(HttpMethod.GET, "/api/planos/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/planos/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/planos/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/planos/**").hasRole("ADMIN")
+
+                                .anyRequest().authenticated()
+                        )
+                        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+
+                return http.build();
+            }
+
+            ```
+
+---
+
+    3. Configurar OpenAPI com Bearer Auth (`OpenApiConfig`)
+
+        Adicionar os componentes de `SecurityScheme` (tipo HTTP, esquema Bearer, formato JWT) e `SecurityRequirement`
+        para expor o botão de autorização **Authorize 🔓** na interface do Swagger UI.
+
+        Código de referência:
+
+            ```java
+            package br.com.jaanalves.fase4.config;
+
+            import io.swagger.v3.oas.models.Components;
+            import io.swagger.v3.oas.models.OpenAPI;
+            import io.swagger.v3.oas.models.info.Info;
+            import io.swagger.v3.oas.models.security.SecurityRequirement;
+            import io.swagger.v3.oas.models.security.SecurityScheme;
+            import org.springframework.context.annotation.Bean;
+            import org.springframework.context.annotation.Configuration;
+
+            @Configuration
+            public class OpenApiConfig {
+
+                @Bean
+                public OpenAPI customOpenAPI() {
+                    final String securitySchemeName = "bearerAuth";
+
+                    return new OpenAPI()
+                            .info(new Info()
+                                    .title("Plan Management API")
+                                    .version("1.0")
+                                    .description("API RESTful para gestão e provisionamento de planos de telefonia")
+                            )
+                            .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+                            .components(
+                                    new Components()
+                                            .addSecuritySchemes(securitySchemeName,
+                                                    new SecurityScheme()
+                                                            .name(securitySchemeName)
+                                                            .type(SecurityScheme.Type.HTTP)
+                                                            .scheme("bearer")
+                                                            .bearerFormat("JWT")
+                                            )
+                            );
+                }
+            }
+
+            ```
+
+---
+
+### 🧪 Roteiro de Homologação
+
+Cenário 1 (Sem Token):** Executar `GET /api/planos` sem informar autorização ➔ Esperado: `403 Forbidden`.
+
+Cenário 2 (Geração do Token):** Executar `POST /api/auth/login` com payload `{"username": "cliente", "senha": "123456"}` ➔ Esperado: **`200 OK`** contendo o JWT.
+
+Cenário 3 (Consulta com Role USER):** Inserir o token gerado no botão **Authorize 🔓** do Swagger e executar `GET /api/planos` ➔ Esperado: **`200 OK`** com a lista de planos.
+
+Cenário 4 (Bloqueio RBAC para Role USER):** Mantendo o token do `cliente`, tentar executar `POST /api/planos` ➔ Esperado: **`403 Forbidden`** (apenas ADMIN pode cadastrar).
+
+Cenário 5 (Cadastro com Role ADMIN):** Gerar o token do usuário `admin` (`admin123`), autorizar no Swagger e executar o `POST /api/planos`
+➔ Esperado: **`200 OK`** (ou `201 Created`).

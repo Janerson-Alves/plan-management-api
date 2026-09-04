@@ -1,0 +1,102 @@
+📋 História de Usuário & Contexto do Cliente
+
+Cliente: Time de Arquitetura & Segurança
+
+Contexto de Negócio:
+
+> "Fala, time de backend! Agora que o `TokenService` está validado e gerando tokens JWT assinados com sucesso, precisamos expor o ponto de entrada da nossa API.
+> A Nossa Necessidade: Queremos um endpoint público de login onde o cliente envia suas credenciais (usuário e senha).
+    O Spring Security deve validar essas credenciais contra os usuários cadastrados e, caso estejam corretas,
+    chamar o nosso `TokenService` e devolver o token JWT em formato JSON para o cliente."
+
+---
+
+🎯 TASK-54: DTOs de Autenticação, Endpoint de Login (`AuthController`) e `AuthenticationManager`
+
+Repositório: `plan-management-api`
+
+---
+
+### 🛠️ Critérios de Aceite & Passo a Passo
+
+    1. Criar os DTOs de Autenticação
+
+        1.1 No pacote `br.com.jaanalves.fase4.dto` (ou `dto.auth`):
+            `LoginDTO`**:
+             Campos: `String username` e `String senha` (com anotações do Bean Validation como `@NotBlank`, getters, setters ou Record).
+
+            `TokenResponseDTO`**:
+            Campo: `String token` e opcionalmente `String tipo` (valor padrão `"Bearer"`).
+
+
+
+    2. Expor o Bean `AuthenticationManager` no `SecurityConfig`
+
+        2.1 O Spring Security precisa de um gerenciador de autenticação para validar usuário e senha contra o `UserDetailsService`.
+        Adicione no `SecurityConfig`:
+
+            ```java
+            @Bean
+            public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+                return authenticationConfiguration.getAuthenticationManager();
+            }
+
+            ```
+
+    3. Liberar o Endpoint de Login no `SecurityConfig`
+
+        3.1 No método `securityFilterChain`, permita o acesso anônimo ao endpoint de login:
+
+            ```java
+            .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+
+            ```
+
+    4. Criar o `AuthController`
+
+        4.1 No pacote `br.com.jaanalves.fase4.controllers`:
+
+            Anote com `@RestController` e `@RequestMapping("/api/auth")`.
+            Injete:
+                `AuthenticationManager authenticationManager`
+                `TokenService tokenService`
+
+
+        4.2 Implemente o endpoint `POST /login`:
+            ```java
+            @PostMapping("/login")
+            public ResponseEntity<TokenResponseDTO> login(@RequestBody @Valid LoginDTO dto) {
+                // Cria o objeto de autenticação com login e senha
+                var authToken = new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getSenha());
+
+                // Autentica via Spring Security (se falhar, lança BadCredentialsException automaticamente)
+                var authentication = authenticationManager.authenticate(authToken);
+
+                // Recupera o usuário autenticado e gera o JWT
+                var usuario = (UserDetails) authentication.getPrincipal();
+                var tokenJWT = tokenService.gerarToken(usuario);
+
+                return ResponseEntity.ok(new TokenResponseDTO(tokenJWT, "Bearer"));
+            }
+
+            ```
+
+
+
+---
+
+### 🧪 Roteiro de Homologação
+
+1. Suba a aplicação.
+2. No Swagger ou Postman, faça uma chamada `POST /api/auth/login` com JSON:
+    ```json
+    {
+      "username": "cliente",
+      "senha": "123456"
+    }
+
+    ```
+
+
+3. Valide se a resposta retorna status `200 OK` com o token JWT gerado.
+4. Faça um teste com senha errada (ex: `"senha": "errada"`) e confirme se o Spring Security bloqueia com **`401 Unauthorized`** ou **`403 Forbidden`**.
