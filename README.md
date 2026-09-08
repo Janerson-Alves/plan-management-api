@@ -23,6 +23,12 @@ O projeto aplica os princípios de Clean Code e arquitetura em camadas desacopla
 
 ---
 
+### 🌐 Padronização de Erros de Segurança
+* **401 Unauthorized:** Retornado via `CustomAuthenticationEntryPoint` quando a requisição não contém um token válido ou expirado.
+* **403 Forbidden:** Retornado via `CustomAccessDeniedHandler` quando o usuário autenticado não possui o papel (role) necessário para executar a ação.
+
+---
+
 ## 🐳 Como Executar o Banco de Dados (Docker)
 
 Para iniciar o banco de dados PostgreSQL conteinerizado, execute na raiz do projeto:
