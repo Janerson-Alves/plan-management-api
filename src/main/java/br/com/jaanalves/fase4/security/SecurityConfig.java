@@ -26,13 +26,21 @@ public class SecurityConfig {
 
     // Define quais rotas são públicas ou protegidas
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityFilter securityFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http
+            , SecurityFilter securityFilter
+            , CustomAuthenticationEntryPoint authEntryPoint
+            , CustomAccessDeniedHandler accessDeniedHandler) throws Exception {
 
         http
                 // Desabilita o CSRF para a API REST
                 .csrf(csrf -> csrf.disable())
                 // Sessao stateless
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // pegando as excecoes e jogando em cada classe para ser tratada de formas diferentes
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(authEntryPoint) // trata erros 401
+                        .accessDeniedHandler(accessDeniedHandler) // trata erros 403
+                )
 
                 // Define quem pode acessar cada rota
                 .authorizeHttpRequests(auth -> auth

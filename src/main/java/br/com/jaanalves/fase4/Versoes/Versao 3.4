@@ -1,0 +1,198 @@
+
+### 📋 História de Usuário & Contexto do Cliente
+
+**Cliente:** Time de Arquitetura & Segurança da Informação
+
+**Contexto de Negócio:**
+
+> "Fala, time! O fluxo do token está perfeito, mas quando o aplicativo mobile ou o front-end recebe um erro de autenticação ou autorização,
+    precisamos de um payload JSON limpo e padronizado para exibir mensagens amigáveis ao usuário.
+> A Nossa Necessidade:** Queremos tratar customizadamente duas situações de segurança:
+>   1. Erro 401 Unauthorized (`AuthenticationEntryPoint`):** Quando o cliente tenta acessar uma rota protegida sem token,
+        com token expirado ou com assinatura inválida.
+>   2. Erro 403 Forbidden (`AccessDeniedHandler`): Quando o cliente está autenticado (ex: usuário `cliente`),
+        mas tenta realizar uma operação restrita (ex: cadastrar ou excluir plano, que exige role `ADMIN`)."
+---
+
+### 🎯 TASK-56: Customização de Tratamento de Erros de Segurança (`401` e `403`)
+
+Repositório: `plan-management-api`
+
+
+
+🛠️ Critérios de Aceite & Passo a Passo
+
+1. Criar o DTO de Resposta de Erro
+
+    1.1 No pacote `br.com.jaanalves.fase4.dto` (ou `exception`), crie o DTO de erro caso ainda não tenha um padronizado:
+
+        ```java
+        package br.com.jaanalves.fase4.dto;
+
+        import java.time.LocalDateTime;
+
+        public record ErroRespostaDTO(
+            int status,
+            String erro,
+            String mensagem,
+            String path,
+            LocalDateTime timestamp
+        ) {}
+
+        ```
+
+---
+
+    2. Criar o `CustomAuthenticationEntryPoint` (Tratamento de 401)
+
+        2.1 Crie a classe no pacote `br.com.jaanalves.fase4.security`:
+
+            ```java
+            package br.com.jaanalves.fase4.security;
+
+            import br.com.jaanalves.fase4.dto.ErroRespostaDTO;
+            import com.fasterxml.jackson.databind.ObjectMapper;
+            import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+            import jakarta.servlet.http.HttpServletRequest;
+            import jakarta.servlet.http.HttpServletResponse;
+            import org.springframework.http.HttpStatus;
+            import org.springframework.http.MediaType;
+            import org.springframework.security.core.AuthenticationException;
+            import org.springframework.security.web.AuthenticationEntryPoint;
+            import org.springframework.stereotype.Component;
+
+            import java.io.IOException;
+            import java.time.LocalDateTime;
+
+            @Component
+            public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
+
+                @Override
+                public void commence(HttpServletRequest request,
+                                     HttpServletResponse response,
+                                     AuthenticationException authException) throws IOException {
+
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+                    ErroRespostaDTO erro = new ErroRespostaDTO(
+                            HttpStatus.UNAUTHORIZED.value(),
+                            "Não Autorizado",
+                            "Token de acesso ausente, inválido ou expirado.",
+                            request.getRequestURI(),
+                            LocalDateTime.now()
+                    );
+
+                    ObjectMapper mapper = new ObjectMapper();
+                    mapper.registerModule(new JavaTimeModule());
+                    response.getWriter().write(mapper.writeValueAsString(erro));
+                }
+            }
+
+            ```
+
+---
+
+    3. Criar o `CustomAccessDeniedHandler` (Tratamento de 403)
+
+        3.1 Crie a classe no pacote `br.com.jaanalves.fase4.security`:
+
+            ```java
+            package br.com.jaanalves.fase4.security;
+
+            import br.com.jaanalves.fase4.dto.ErroRespostaDTO;
+            import com.fasterxml.jackson.databind.ObjectMapper;
+            import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+            import jakarta.servlet.http.HttpServletRequest;
+            import jakarta.servlet.http.HttpServletResponse;
+            import org.springframework.http.HttpStatus;
+            import org.springframework.http.MediaType;
+            import org.springframework.security.access.AccessDeniedException;
+            import org.springframework.security.web.access.AccessDeniedHandler;
+            import org.springframework.stereotype.Component;
+
+            import java.io.IOException;
+            import java.time.LocalDateTime;
+
+            @Component
+            public class CustomAccessDeniedHandler implements AccessDeniedHandler {
+
+                @Override
+                public void handle(HttpServletRequest request,
+                                   HttpServletResponse response,
+                                   AccessDeniedException accessDeniedException) throws IOException {
+
+                    response.setStatus(HttpStatus.FORBIDDEN.value());
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+                    ErroRespostaDTO erro = new ErroRespostaDTO(
+                            HttpStatus.FORBIDDEN.value(),
+                            "Acesso Negado",
+                            "Você não possui permissão para acessar este recurso.",
+                            request.getRequestURI(),
+                            LocalDateTime.now()
+                    );
+
+                    ObjectMapper mapper = new ObjectMapper();
+                    mapper.registerModule(new JavaTimeModule());
+                    response.getWriter().write(mapper.writeValueAsString(erro));
+                }
+            }
+
+            ```
+
+---
+
+    4. Registrar os Tratadores no `SecurityConfig`
+
+        4.1 No seu `SecurityConfig.java`, atualize o método `securityFilterChain` recebendo os dois novos handlers como parâmetros:
+
+            ```java
+            @Bean
+            public SecurityFilterChain securityFilterChain(
+                    HttpSecurity http,
+                    SecurityFilter securityFilter,
+                    CustomAuthenticationEntryPoint authEntryPoint,
+                    CustomAccessDeniedHandler accessDeniedHandler) throws Exception {
+
+                http
+                        .csrf(csrf -> csrf.disable())
+                        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .exceptionHandling(exception -> exception
+                                .authenticationEntryPoint(authEntryPoint) // Trata o 401
+                                .accessDeniedHandler(accessDeniedHandler)  // Trata o 403
+                        )
+                        .authorizeHttpRequests(auth -> auth
+                                .requestMatchers(
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html"
+                                ).permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                                .requestMatchers("/api/auth/**").permitAll()
+
+                                .requestMatchers(HttpMethod.GET, "/api/planos/**").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers(HttpMethod.POST, "/api/planos/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.PUT, "/api/planos/**").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.DELETE, "/api/planos/**").hasRole("ADMIN")
+
+                                .anyRequest().authenticated()
+                        )
+                        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+
+                return http.build();
+            }
+
+            ```
+
+---
+
+🧪 Roteiro de Homologação
+
+1. Inicie a aplicação no IntelliJ.
+2. Teste 401 (Sem token):** Faça um `GET /api/planos/1` sem nenhum token.
+    Esperado:** Status `401 Unauthorized` com o JSON contendo `"mensagem": "Token de acesso ausente, inválido ou expirado."`.
+
+
+3. Teste 403 (Sem permissão de Admin):** Faça login com o usuário `cliente`, copie o token, autorize no Swagger e tente fazer um `POST /api/planos`.
+    Esperado: Status `403 Forbidden` com o JSON contendo `"mensagem": "Você não possui permissão para acessar este recurso."`.
