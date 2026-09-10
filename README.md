@@ -29,6 +29,12 @@ O projeto aplica os princípios de Clean Code e arquitetura em camadas desacopla
 
 ---
 
+### 📂 Provisionamento e Repositórios
+* **Derived Queries:** Padrão *camelCase* aplicado em `PerfilRepository.findByNome` para o mapeamento correto de consultas automáticas pelo Spring Data JPA.
+* **Carga Inicial Idempotente:** Implementação da `CargaDadosConfig` com `@Component` e `@Transactional` para garantir a criação dos perfis (`ROLE_ADMIN`, `ROLE_USER`) e usuários de teste (`admin.telecom`, `cliente.telecom`) de forma segura e sem duplicidade.
+
+---
+
 ## 🐳 Como Executar o Banco de Dados (Docker)
 
 Para iniciar o banco de dados PostgreSQL conteinerizado, execute na raiz do projeto:
