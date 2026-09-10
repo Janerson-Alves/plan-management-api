@@ -79,28 +79,6 @@ public class SecurityConfig {
     }
 
 
-    // Cria usuários em memória para testes
-    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-
-        // Usuário comum
-        UserDetails cliente = User
-                .withUsername("cliente")
-                .password(passwordEncoder.encode("123456"))
-                .roles("USER")
-                .build();
-
-        // Usuário administrador
-        UserDetails admin = User
-                .withUsername("admin")
-                .password(passwordEncoder.encode("admin123"))
-                .roles("ADMIN")
-                .build();
-
-        // Guarda os usuários apenas na memória da aplicação
-        return new InMemoryUserDetailsManager(cliente, admin);
-    }
-
     // Gerenciador de autenticação para validar usuario e senha
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
